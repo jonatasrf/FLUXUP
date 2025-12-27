@@ -1,0 +1,42 @@
+{
+  "nodes": [
+    {
+      "id": "aecccd56-cba0-486c-a4df-4e95a25971fa",
+      "type": "task",
+      "position": {
+        "x": 582.5,
+        "y": 441.5
+      },
+      "data": {
+        "label": "My First Task",
+        "status": "pending"
+      },
+      "width": 256,
+      "height": 100
+    },
+    {
+      "id": "00c9a065-6d77-4f7b-9ac3-9f8e9d34d782",
+      "type": "task",
+      "position": {
+        "x": 938.5,
+        "y": 441.5
+      },
+      "data": {
+        "label": "New Branch",
+        "status": "pending"
+      },
+      "width": 256,
+      "height": 100
+    }
+  ],
+  "edges": [
+    {
+      "id": "eaecccd56-cba0-486c-a4df-4e95a25971fa-00c9a065-6d77-4f7b-9ac3-9f8e9d34d782-1764789129444",
+      "source": "aecccd56-cba0-486c-a4df-4e95a25971fa",
+      "target": "00c9a065-6d77-4f7b-9ac3-9f8e9d34d782",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "animated": true
+    }
+  ]
+}

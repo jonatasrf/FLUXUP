@@ -1,0 +1,19 @@
+{
+  "nodes": [
+    {
+      "id": "1b05369e-d3fb-418f-9411-14f62b5e645a",
+      "type": "task",
+      "position": {
+        "x": 254.5,
+        "y": 317.5
+      },
+      "data": {
+        "label": "My First Task",
+        "status": "pending"
+      },
+      "width": 256,
+      "height": 100
+    }
+  ],
+  "edges": []
+}

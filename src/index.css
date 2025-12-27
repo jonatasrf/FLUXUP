@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --bg-main: #121212;
+  --bg-sidebar: #181818;
+  --text-main: #e0e0e0;
+  --text-muted: #94a3b8;
+  --border-color: #1f2937;
+  --sidebar-active: #1f2937;
+  --card-bg: #1e1e1e;
+
+  color-scheme: dark;
+  --input-bg: #181818;
+  --input-border: #2d3748;
+  --header-bg: #1a1a1a;
+  --cursor-color: #ffffff;
+  --warning-text: #facc15;
+  /* Yellow-400 equivalent */
+  --warning-bg: rgba(250, 204, 21, 0.1);
+  --warning-border: rgba(250, 204, 21, 0.2);
+}
+
+[data-theme='light'] {
+  --bg-main: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --sidebar-active: #f1f5f9;
+  --card-bg: #ffffff;
+
+  color-scheme: light;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --header-bg: #f1f5f9;
+  --cursor-color: #000000;
+  --warning-text: #92400e;
+  /* Amber-800 for better contrast */
+  --warning-bg: #fefce8;
+  /* Yellow-50 */
+  --warning-border: #fef08a;
+  /* Yellow-200 */
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-width: 320px;
+  min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+@layer utilities {
+  .animate-flow {
+    stroke-dasharray: 10;
+    animation: flow 1s linear infinite;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  .mask-linear-fade {
+    mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
+  }
+
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #181818;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #444;
+  }
+
+  /* Flow Editor Canvas Cursor */
+  .flow-canvas-container {
+    cursor: grab;
+  }
+
+  .flow-canvas-container:active {
+    cursor: grabbing;
+  }
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -20;
+  }
+}

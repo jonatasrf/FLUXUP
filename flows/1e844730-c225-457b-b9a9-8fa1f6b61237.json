@@ -1,0 +1,822 @@
+{
+  "id": "1e844730-c225-457b-b9a9-8fa1f6b61237",
+  "name": "Ideação de aplicação",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "task",
+      "position": {
+        "x": 0,
+        "y": 50
+      },
+      "width": 256,
+      "height": 189,
+      "data": {
+        "label": "Idealizar Aplicação FluxUp",
+        "status": "completed",
+        "description": "Brainstorm de conceitos e funcionalidades iniciais para o aplicativo de gerenciamento de projetos.",
+        "priority": "low",
+        "assignee": "Equipe de Produto",
+        "startDate": "2025-12-01",
+        "dueDate": "2025-12-05",
+        "tags": [
+          "ideação",
+          "brainstorming"
+        ]
+      }
+    },
+    {
+      "id": "marketResearch",
+      "type": "task",
+      "position": {
+        "x": 912,
+        "y": 50
+      },
+      "width": 256,
+      "height": 205,
+      "data": {
+        "label": "Conduzir Pesquisa de Mercado",
+        "status": "completed",
+        "description": "Analisar aplicativos de gerenciamento de projetos existentes e identificar necessidades dos usuários e oportunidades de mercado.",
+        "priority": "alta",
+        "assignee": "Analista de Mercado",
+        "startDate": "2025-12-01",
+        "dueDate": "2025-12-05",
+        "tags": [
+          "pesquisa de mercado",
+          "análise"
+        ]
+      }
+    },
+    {
+      "id": "swotAnalysis",
+      "type": "swot",
+      "position": {
+        "x": 1368,
+        "y": 50
+      },
+      "width": 600,
+      "height": 450,
+      "data": {
+        "label": "Análise SWOT do FluxUp",
+        "status": "completo",
+        "swot": {
+          "strengths": [
+            "Interface amigável",
+            "Integração com ferramentas populares",
+            "Funcionalidades inovadoras"
+          ],
+          "weaknesses": [
+            "Novo no mercado",
+            "Base de usuários inicial limitada",
+            "Requer desenvolvimento contínuo"
+          ],
+          "opportunities": [
+            "Mercado de gerenciamento de projetos em crescimento",
+            "Parcerias com outros fornecedores de software",
+            "Expansão para novas plataformas"
+          ],
+          "threats": [
+            "Concorrentes estabelecidos",
+            "Mudança nas preferências dos usuários",
+            "Crise econômica"
+          ]
+        },
+        "description": "Realizar SWOT para identificar vantagens e desvantagens estratégicas.",
+        "priority": "média",
+        "assignee": "Equipe de Estratégia",
+        "startDate": "2025-12-24",
+        "dueDate": "2025-12-30",
+        "tags": [
+          "estratégia",
+          "análise"
+        ]
+      }
+    },
+    {
+      "id": "defineFeatures",
+      "type": "task",
+      "position": {
+        "x": 2624,
+        "y": 50
+      },
+      "width": 307.07229971337256,
+      "height": 150,
+      "data": {
+        "label": "Definir Funcionalidades Principais",
+        "status": "completed",
+        "description": "Com base na pesquisa de mercado e SWOT, definir as funcionalidades principais do FluxUp.",
+        "priority": "critical",
+        "assignee": "Gerente de Produto",
+        "startDate": "2025-12-31",
+        "dueDate": "2026-01-06",
+        "tags": [
+          "definição de funcionalidades",
+          "planejamento"
+        ]
+      }
+    },
+    {
+      "id": "prioritizeFeatures",
+      "type": "prioritization",
+      "position": {
+        "x": 3131.0722997133726,
+        "y": 50
+      },
+      "width": 600,
+      "height": 450,
+      "data": {
+        "label": "Priorização de Funcionalidades usando RICE",
+        "status": "completo",
+        "description": "Usar o modelo de pontuação RICE para priorizar as funcionalidades para a versão inicial.",
+        "prioritization": {
+          "method": "ICE",
+          "items": [
+            {
+              "id": "1",
+              "label": "Gerenciamento de Tarefas",
+              "reach": 100,
+              "impact": 5,
+              "confidence": 90,
+              "effort": 8,
+              "score": 40500,
+              "ease": 90
+            },
+            {
+              "id": "2",
+              "label": "Colaboração em Equipe",
+              "reach": 80,
+              "impact": 4,
+              "confidence": 85,
+              "effort": 6,
+              "score": 28900,
+              "ease": 85
+            },
+            {
+              "id": "3",
+              "label": "Linha do Tempo do Projeto",
+              "reach": 90,
+              "impact": 4,
+              "confidence": 80,
+              "effort": 7,
+              "score": 25600,
+              "ease": 80
+            },
+            {
+              "id": "4",
+              "label": "Alocação de Recursos",
+              "reach": 70,
+              "impact": 3,
+              "confidence": 75,
+              "effort": 5,
+              "score": 16875,
+              "ease": 75
+            }
+          ]
+        },
+        "priority": "alta",
+        "assignee": "Gerente de Produto",
+        "startDate": "2026-01-07",
+        "dueDate": "2026-01-14",
+        "tags": [
+          "priorização",
+          "RICE"
+        ]
+      }
+    },
+    {
+      "id": "designUIUX",
+      "type": "task",
+      "position": {
+        "x": 3931.0722997133726,
+        "y": 50
+      },
+      "width": 256,
+      "height": 173,
+      "data": {
+        "label": "Design UI/UX",
+        "status": "completo",
+        "description": "Criar wireframes, mockups e protótipos para a interface do usuário do FluxUp.",
+        "priority": "high",
+        "assignee": "Designer UI/UX",
+        "startDate": "2026-01-15",
+        "dueDate": "2026-01-21",
+        "tags": [
+          "design",
+          "UI/UX"
+        ]
+      }
+    },
+    {
+      "id": "development",
+      "type": "task",
+      "position": {
+        "x": 4387.072299713373,
+        "y": 50
+      },
+      "width": 256,
+      "height": 189,
+      "data": {
+        "label": "Desenvolver Aplicação",
+        "status": "em progresso",
+        "description": "Desenvolver o aplicativo FluxUp com base nas funcionalidades definidas e no design UI/UX.",
+        "priority": "critical",
+        "assignee": "Equipe de Desenvolvimento",
+        "startDate": "2026-01-22",
+        "dueDate": "2026-02-14",
+        "tags": [
+          "desenvolvimento",
+          "codificação"
+        ]
+      }
+    },
+    {
+      "id": "fmeaDev",
+      "type": "fmea",
+      "position": {
+        "x": 4843.072299713373,
+        "y": 50
+      },
+      "width": 320,
+      "height": 400,
+      "data": {
+        "label": "FMEA da Fase de Desenvolvimento",
+        "status": "completed",
+        "failureMode": "Conflitos de código levam a builds instáveis",
+        "severity": 7,
+        "occurrence": 5,
+        "detection": 3,
+        "action": "Implementar controle de versão robusto e processo de revisão de código",
+        "description": "Conduzir Análise de Modos de Falha e Efeitos (FMEA) para identificar e mitigar riscos durante a fase de desenvolvimento.",
+        "priority": "média",
+        "assignee": "Equipe de QA",
+        "startDate": "2026-02-15",
+        "dueDate": "2026-02-22",
+        "tags": [
+          "avaliação de risco",
+          "FMEA"
+        ],
+        "rpn": 105
+      }
+    },
+    {
+      "id": "testing",
+      "type": "task",
+      "position": {
+        "x": 5363.072299713373,
+        "y": 50
+      },
+      "width": 256,
+      "height": 166,
+      "data": {
+        "label": "Teste e QA",
+        "status": "pendente",
+        "description": "Conduzir testes completos e garantia de qualidade para garantir que o aplicativo seja estável e atenda aos requisitos.",
+        "priority": "high",
+        "assignee": "Equipe de QA",
+        "startDate": "2026-02-23",
+        "dueDate": "2026-03-31",
+        "tags": [
+          "teste",
+          "QA"
+        ]
+      }
+    },
+    {
+      "id": "ishikawaTesting",
+      "type": "ishikawa",
+      "position": {
+        "x": 5819.072299713373,
+        "y": 50
+      },
+      "width": 600,
+      "height": 400,
+      "data": {
+        "label": "Ishikawa - Análise de Falhas de Teste",
+        "status": "pendente",
+        "causes": {
+          "method": [
+            "Cobertura de teste inadequada",
+            "Casos de teste mal definidos"
+          ],
+          "machine": [
+            "Ferramentas de teste desatualizadas",
+            "Recursos de hardware insuficientes"
+          ],
+          "material": [
+            "Documentação de requisitos incompleta",
+            "Histórias de usuário confusas"
+          ],
+          "manpower": [
+            "Falta de experiência em testes",
+            "Alocação de tempo insuficiente"
+          ],
+          "measurement": [
+            "Rastreamento de bugs impreciso",
+            "Resultados de teste subjetivos"
+          ],
+          "environment": [
+            "Ambiente de teste instável",
+            "Condições de rede inconsistentes"
+          ]
+        },
+        "description": "Realizar diagrama de Ishikawa para analizar as causas raízes de falhas de teste.",
+        "priority": "média",
+        "assignee": "Líder de QA",
+        "startDate": "2026-04-01",
+        "dueDate": "2026-04-07",
+        "tags": [
+          "análise de causa raiz",
+          "Ishikawa"
+        ]
+      }
+    },
+    {
+      "id": "decision1",
+      "type": "decision",
+      "position": {
+        "x": 6619.072299713373,
+        "y": 50
+      },
+      "width": 150,
+      "height": 140,
+      "data": {
+        "label": "Todos os bugs críticos foram resolvidos?",
+        "status": "pendente",
+        "question": "Todos os bugs críticos foram resolvidos?",
+        "decision": "yes",
+        "decisionSwapped": true
+      }
+    },
+    {
+      "id": "bugFixing",
+      "type": "task",
+      "position": {
+        "x": 7075.072299713373,
+        "y": 50
+      },
+      "width": 256,
+      "height": 173,
+      "data": {
+        "label": "Correção de Bugs",
+        "status": "pendente",
+        "description": "Corrigir quaisquer bugs e problemas identificados.",
+        "priority": "alta",
+        "assignee": "Equipe de Desenvolvimento",
+        "startDate": "2026-04-08",
+        "dueDate": "2026-04-15",
+        "tags": [
+          "correção de bugs",
+          "manutenção"
+        ]
+      }
+    },
+    {
+      "id": "prepareDeployment",
+      "type": "task",
+      "position": {
+        "x": 7075.072299713373,
+        "y": 323
+      },
+      "width": 256,
+      "height": 173,
+      "data": {
+        "label": "Preparar para Implantação",
+        "status": "pendente",
+        "description": "Preparar o ambiente e a infraestrutura para a implantação.",
+        "priority": "alta",
+        "assignee": "Equipe de DevOps",
+        "startDate": "2026-04-16",
+        "dueDate": "2026-04-22",
+        "tags": [
+          "implantação",
+          "DevOps"
+        ]
+      }
+    },
+    {
+      "id": "documentDeployment",
+      "type": "document",
+      "position": {
+        "x": 7531.072299713373,
+        "y": 323
+      },
+      "width": 200,
+      "height": 183,
+      "data": {
+        "label": "Plano de Implantação",
+        "status": "pendente",
+        "description": "Plano de implantação detalhado, incluindo etapas, estratégia de rollback e monitoramento.",
+        "documentUrl": "https://example.com/deployment_plan.pdf",
+        "priority": "alta",
+        "assignee": "Engenheiro de DevOps",
+        "startDate": "2026-04-23",
+        "dueDate": "2026-04-29",
+        "tags": [
+          "implantação",
+          "documentação"
+        ]
+      }
+    },
+    {
+      "id": "deployApp",
+      "type": "task",
+      "position": {
+        "x": 8131.072299713373,
+        "y": 323
+      },
+      "width": 256,
+      "height": 173,
+      "data": {
+        "label": "Implantar Aplicação",
+        "status": "pendente",
+        "description": "Implantar o aplicativo FluxUp no ambiente de produção.",
+        "priority": "alta",
+        "assignee": "Equipe de DevOps",
+        "startDate": "2026-04-30",
+        "dueDate": "2026-05-06",
+        "tags": [
+          "implantação"
+        ]
+      }
+    },
+    {
+      "id": "monitorApp",
+      "type": "task",
+      "position": {
+        "x": 8587.072299713373,
+        "y": 323
+      },
+      "width": 256,
+      "height": 173,
+      "data": {
+        "label": "Monitorar Aplicação",
+        "status": "pendente",
+        "description": "Monitorar o aplicativo FluxUp quanto ao desempenho e estabilidade.",
+        "priority": "alta",
+        "assignee": "Equipe de DevOps",
+        "startDate": "2026-05-07",
+        "dueDate": "2026-05-14",
+        "tags": [
+          "monitoramento",
+          "manutenção"
+        ]
+      }
+    },
+    {
+      "id": "launchMarketing",
+      "type": "task",
+      "position": {
+        "x": 7075.072299713373,
+        "y": 596
+      },
+      "width": 256,
+      "height": 173,
+      "data": {
+        "label": "Lançar Campanha de Marketing",
+        "status": "pendente",
+        "description": "Executar o plano de marketing para promover o FluxUp.",
+        "priority": "alta",
+        "assignee": "Equipe de Marketing",
+        "startDate": "2026-04-16",
+        "dueDate": "2026-04-23",
+        "tags": [
+          "marketing",
+          "promoção"
+        ]
+      }
+    },
+    {
+      "id": "fiveWTwoHMarketing",
+      "type": "fiveWTwoH",
+      "position": {
+        "x": 7531.072299713373,
+        "y": 606
+      },
+      "width": 400,
+      "height": 350,
+      "data": {
+        "label": "5W2H da Campanha de Marketing",
+        "status": "pendente",
+        "fiveWTwoH": {
+          "what": "Lançar campanha de marketing por mídia social e e-mail",
+          "why": "Aumentar o conhecimento da marca e a aquisição de usuários",
+          "where": "Facebook, LinkedIn, Twitter, E-mail",
+          "when": "Maio de 2026",
+          "who": "Equipe de Marketing",
+          "how": "Publicidade paga, marketing de conteúdo, e-mail marketing",
+          "howMuch": "$5000"
+        },
+        "description": "Aplicar 5W2H para definir os detalhes da campanha de marketing.",
+        "priority": "média",
+        "assignee": "Gerente de Marketing",
+        "startDate": "2026-04-24",
+        "dueDate": "2026-04-30",
+        "tags": [
+          "marketing",
+          "5W2H"
+        ]
+      }
+    },
+    {
+      "id": "collectFeedback",
+      "type": "task",
+      "position": {
+        "x": 8131.072299713373,
+        "y": 606
+      },
+      "width": 256,
+      "height": 173,
+      "data": {
+        "label": "Coletar Feedback do Usuário",
+        "status": "pendente",
+        "description": "Coletar feedback do usuário para identificar áreas de melhoria.",
+        "priority": "alta",
+        "assignee": "Equipe de Sucesso do Cliente",
+        "startDate": "2026-05-01",
+        "dueDate": "2026-05-30",
+        "tags": [
+          "feedback",
+          "pesquisa de usuário"
+        ]
+      }
+    },
+    {
+      "id": "pdcaImprovement",
+      "type": "pdca",
+      "position": {
+        "x": 9043.072299713373,
+        "y": 464.5
+      },
+      "width": 500,
+      "height": 400,
+      "data": {
+        "label": "Ciclo de Melhoria Contínua",
+        "status": "pendente",
+        "pdca": {
+          "plan": [
+            "Analisar feedback do usuário",
+            "Identificar áreas para melhoria"
+          ],
+          "do": [
+            "Implementar novos recursos e aprimoramentos",
+            "Corrigir bugs"
+          ],
+          "check": [
+            "Medir a satisfação do usuário",
+            "Rastrear o desempenho"
+          ],
+          "act": [
+            "Padronizar melhorias",
+            "Planejar o próximo ciclo"
+          ]
+        },
+        "description": "Aplicar o ciclo PDCA para melhoria contínua com base no feedback.",
+        "priority": "média",
+        "assignee": "Equipe de Produto",
+        "startDate": "2026-05-31",
+        "dueDate": "2026-06-30",
+        "tags": [
+          "melhoria contínua",
+          "PDCA"
+        ]
+      }
+    },
+    {
+      "id": "end",
+      "type": "task",
+      "position": {
+        "x": 9743.072299713373,
+        "y": 464.5
+      },
+      "width": 256,
+      "height": 173,
+      "data": {
+        "label": "Aplicação Lançada",
+        "status": "completo",
+        "description": "O aplicativo FluxUp é lançado e mantido com sucesso.",
+        "priority": "alta",
+        "assignee": "Equipe de Projeto",
+        "startDate": "2026-05-15",
+        "dueDate": "2026-05-15",
+        "tags": [
+          "lançamento",
+          "sucesso"
+        ]
+      }
+    },
+    {
+      "id": "4992a664-4e2e-43d0-a126-30c1af520d66",
+      "type": "meeting",
+      "position": {
+        "x": 2168,
+        "y": 50
+      },
+      "data": {
+        "label": "New Meeting",
+        "meeting": {
+          "date": "2025-12-16T18:00:00.000Z",
+          "participants": [
+            "jonatas"
+          ],
+          "minutes": "555555555555555"
+        },
+        "startDate": "2025-12-16T18:00:00.000Z",
+        "dueDate": "2025-12-16T18:00:00.000Z",
+        "attachments": [
+          {
+            "id": "314bfc57-b262-4c26-9718-63bee2372a75",
+            "name": "identidade.png",
+            "type": "file",
+            "path": "attachments\\4992a664-4e2e-43d0-a126-30c1af520d66\\identidade.png",
+            "size": 777891,
+            "uploadedAt": "2025-12-09T18:01:29.010Z"
+          }
+        ]
+      },
+      "width": 250,
+      "height": 150
+    },
+    {
+      "id": "8bdb5d68-d5b8-4ad2-9825-e90d00fef118",
+      "type": "meeting",
+      "position": {
+        "x": 456,
+        "y": 50
+      },
+      "data": {
+        "label": "New Meeting",
+        "meeting": {
+          "date": "2025-12-09T19:54:26.003Z",
+          "participants": [],
+          "minutes": ""
+        }
+      },
+      "width": 250,
+      "height": 150
+    }
+  ],
+  "edges": [
+    {
+      "id": "e2-3",
+      "source": "marketResearch",
+      "target": "swotAnalysis",
+      "animated": true
+    },
+    {
+      "id": "e5-6",
+      "source": "prioritizeFeatures",
+      "target": "designUIUX",
+      "animated": true
+    },
+    {
+      "id": "e6-7",
+      "source": "designUIUX",
+      "target": "development",
+      "animated": true
+    },
+    {
+      "id": "e7-8",
+      "source": "development",
+      "target": "fmeaDev",
+      "animated": true
+    },
+    {
+      "id": "e8-9",
+      "source": "fmeaDev",
+      "target": "testing",
+      "animated": true
+    },
+    {
+      "id": "e9-10",
+      "source": "testing",
+      "target": "ishikawaTesting",
+      "animated": true
+    },
+    {
+      "id": "e10-11",
+      "source": "ishikawaTesting",
+      "target": "decision1",
+      "animated": true
+    },
+    {
+      "id": "e11-12",
+      "source": "decision1",
+      "target": "bugFixing",
+      "sourceHandle": "yes",
+      "animated": true
+    },
+    {
+      "id": "e11-13",
+      "source": "decision1",
+      "target": "prepareDeployment",
+      "sourceHandle": "no",
+      "animated": true
+    },
+    {
+      "id": "e13-14",
+      "source": "prepareDeployment",
+      "target": "documentDeployment",
+      "animated": true
+    },
+    {
+      "id": "e14-15",
+      "source": "documentDeployment",
+      "target": "deployApp",
+      "animated": true
+    },
+    {
+      "id": "e15-16",
+      "source": "deployApp",
+      "target": "monitorApp",
+      "animated": true
+    },
+    {
+      "id": "e11-17",
+      "source": "decision1",
+      "target": "launchMarketing",
+      "sourceHandle": "no",
+      "animated": true
+    },
+    {
+      "id": "e17-18",
+      "source": "launchMarketing",
+      "target": "fiveWTwoHMarketing",
+      "animated": true
+    },
+    {
+      "id": "e18-19",
+      "source": "fiveWTwoHMarketing",
+      "target": "collectFeedback",
+      "animated": true
+    },
+    {
+      "id": "e16-20",
+      "source": "monitorApp",
+      "target": "pdcaImprovement",
+      "animated": true
+    },
+    {
+      "id": "e19-20",
+      "source": "collectFeedback",
+      "target": "pdcaImprovement",
+      "animated": true
+    },
+    {
+      "id": "e20-21",
+      "source": "pdcaImprovement",
+      "target": "end",
+      "animated": true
+    },
+    {
+      "id": "edefineFeatures-prioritizeFeatures-1764990626445",
+      "source": "defineFeatures",
+      "target": "prioritizeFeatures",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "animated": true,
+      "style": "solid",
+      "markerEnd": true
+    },
+    {
+      "id": "e-swotAnalysis-4992a664-4e2e-43d0-a126-30c1af520d66",
+      "source": "swotAnalysis",
+      "target": "4992a664-4e2e-43d0-a126-30c1af520d66",
+      "animated": true,
+      "targetHandle": "left"
+    },
+    {
+      "id": "e-4992a664-4e2e-43d0-a126-30c1af520d66-defineFeatures",
+      "source": "4992a664-4e2e-43d0-a126-30c1af520d66",
+      "target": "defineFeatures",
+      "animated": true,
+      "sourceHandle": "right"
+    },
+    {
+      "id": "e-start-8bdb5d68-d5b8-4ad2-9825-e90d00fef118",
+      "source": "start",
+      "target": "8bdb5d68-d5b8-4ad2-9825-e90d00fef118",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "animated": true,
+      "style": "solid",
+      "markerEnd": true
+    },
+    {
+      "id": "e-8bdb5d68-d5b8-4ad2-9825-e90d00fef118-marketResearch",
+      "source": "8bdb5d68-d5b8-4ad2-9825-e90d00fef118",
+      "target": "marketResearch",
+      "sourceHandle": "right",
+      "targetHandle": "left",
+      "animated": true,
+      "style": "solid",
+      "markerEnd": true
+    }
+  ],
+  "transform": {
+    "x": 197.413071968773,
+    "y": 397.1511442611219,
+    "k": 0.4000000000000004
+  },
+  "updatedAt": 1765311794066
+}
