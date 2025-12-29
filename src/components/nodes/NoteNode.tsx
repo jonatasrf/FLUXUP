@@ -1,4 +1,6 @@
 import { useStore, type Node } from '../../store/store';
+import { NodeHandles } from './NodeHandles';
+
 import { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 
@@ -32,40 +34,12 @@ export function NoteNode({ node, selected, onConnectionStart }: NoteNodeProps) {
 
     return (
         <div className="relative w-full h-full group">
-            {/* Connection Handles */}
-            {/* Top */}
-            <div
-                className="absolute left-1/2 -top-3 -translate-x-1/2 w-3 h-3 bg-yellow-500/50 rounded-full opacity-0 group-hover:opacity-100 cursor-crosshair transition-opacity connection-handle z-50"
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="top"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'top');
-                }}
+            {/* Standard 4-side handles */}
+            <NodeHandles
+                nodeId={node.id}
+                onConnectionStart={onConnectionStart}
             />
-            {/* Bottom */}
-            <div
-                className="absolute left-1/2 -bottom-3 -translate-x-1/2 w-3 h-3 bg-yellow-500/50 rounded-full opacity-0 group-hover:opacity-100 cursor-crosshair transition-opacity connection-handle z-50"
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="bottom"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'bottom');
-                }}
-            />
-            {/* Left */}
-            <div
-                className="absolute -left-3 top-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-500/50 rounded-full opacity-0 group-hover:opacity-100 cursor-crosshair transition-opacity connection-handle z-50"
-                data-node-id={node.id}
-                data-handle-type="target"
-                data-handle-id="left"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'left');
-                }}
-            />
+
 
             <div
                 ref={contentRef}
@@ -140,17 +114,7 @@ export function NoteNode({ node, selected, onConnectionStart }: NoteNodeProps) {
                 </div>
             </div>
 
-            {/* Right */}
-            <div
-                className="absolute -right-3 top-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-500/50 rounded-full opacity-0 group-hover:opacity-100 cursor-crosshair transition-opacity connection-handle z-50"
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="right"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'right');
-                }}
-            />
+
         </div>
     );
 }

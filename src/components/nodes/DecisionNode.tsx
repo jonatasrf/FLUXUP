@@ -1,7 +1,9 @@
 
 import { memo, useRef, useLayoutEffect } from 'react';
 import { useStore, type Node } from '../../store/store';
+import { NodeHandles } from './NodeHandles';
 import { clsx } from 'clsx';
+
 import { ArrowUpDown } from 'lucide-react';
 
 interface DecisionNodeProps {
@@ -53,21 +55,16 @@ export const DecisionNode = memo(({ node, selected, onConnectionStart }: Decisio
             "relative w-full h-full bg-[var(--bg-sidebar)] rounded-lg border-2 shadow-lg transition-all duration-200 flex flex-col group min-w-[220px]",
             selected ? "border-orange-500 shadow-orange-500/20" : "border-[var(--border-color)] hover:border-gray-600"
         )}>
-            {/* Input Handle (Left Center) */}
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-gray-400 rounded-full z-20 cursor-crosshair connection-handle hover:bg-orange-500 transition-all",
-                    "-left-1.5 top-1/2 -translate-y-1/2 border-2 border-[var(--bg-main)]"
-                )}
-                data-node-id={node.id}
-                data-handle-type="target"
-                data-handle-id="target"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    onConnectionStart?.(node.id, 'target', e.clientX, e.clientY, 'target');
-                }}
+            {/* Specialized handles for Decision: Standard Arrival (Left), Outputs (Right), Loops (Top/Bottom) */}
+            <NodeHandles
+                nodeId={node.id}
+                onConnectionStart={onConnectionStart}
+                rightHandleIds={data.decisionSwapped ? ['no', 'yes'] : ['yes', 'no']}
+                topHandleType="target"
+                bottomHandleType="target"
             />
+
+
 
             <div className="p-3 flex-1 flex flex-col items-center justify-center min-h-[60px]">
                 <div className="text-xs font-medium text-gray-400 mb-1 text-center uppercase tracking-wider">
@@ -86,8 +83,6 @@ export const DecisionNode = memo(({ node, selected, onConnectionStart }: Decisio
                     onMouseDown={(e) => e.stopPropagation()}
                     rows={1}
                 />
-
-
 
                 {/* Decision Switch & Swap */}
                 <div className="mt-2 flex items-center justify-center gap-2">
@@ -136,62 +131,24 @@ export const DecisionNode = memo(({ node, selected, onConnectionStart }: Decisio
                 </div>
             </div>
 
-            {/* Output Handles (Right Side - Stacked) */}
-            <div className="absolute -right-3 top-0 bottom-0 flex flex-col justify-center gap-4 py-2 w-12">
-                {/* Top handle */}
-                <div className="relative flex items-center justify-end w-full overflow-visible">
-                    <div
-                        className={clsx(
-                            "w-3 h-3 rounded-full z-20 cursor-crosshair connection-handle hover:scale-125 transition-all border-2 border-[var(--bg-main)]",
-                            // Active if: (not swapped and decision=yes) OR (swapped and decision=no)
-                            ((!data.decisionSwapped && data.decision === 'yes') || (data.decisionSwapped && data.decision === 'no'))
-                                ? (data.decisionSwapped ? "bg-red-500" : "bg-green-500")
-                                : "bg-gray-600"
-                        )}
-                        data-node-id={node.id}
-                        data-handle-type="source"
-                        data-handle-id={data.decisionSwapped ? 'no' : 'yes'}
-                        onMouseDown={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            onConnectionStart?.(node.id, 'source', e.clientX, e.clientY, data.decisionSwapped ? 'no' : 'yes');
-                        }}
-                    />
-                    <span className={clsx(
-                        "absolute left-full ml-2 text-[10px] font-bold transition-colors pointer-events-none whitespace-nowrap",
-                        ((!data.decisionSwapped && data.decision === 'yes') || (data.decisionSwapped && data.decision === 'no'))
-                            ? (data.decisionSwapped ? "text-red-500" : "text-green-500")
-                            : "text-gray-600"
-                    )}>{data.decisionSwapped ? 'NO' : 'YES'}</span>
-                </div>
-
-                {/* Bottom handle */}
-                <div className="relative flex items-center justify-end w-full overflow-visible">
-                    <div
-                        className={clsx(
-                            "w-3 h-3 rounded-full z-20 cursor-crosshair connection-handle hover:scale-125 transition-all border-2 border-[#121212]",
-                            // Active if: (not swapped and decision=no) OR (swapped and decision=yes)
-                            ((!data.decisionSwapped && data.decision === 'no') || (data.decisionSwapped && data.decision === 'yes'))
-                                ? (data.decisionSwapped ? "bg-green-500" : "bg-red-500")
-                                : "bg-gray-600"
-                        )}
-                        data-node-id={node.id}
-                        data-handle-type="source"
-                        data-handle-id={data.decisionSwapped ? 'yes' : 'no'}
-                        onMouseDown={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            onConnectionStart?.(node.id, 'source', e.clientX, e.clientY, data.decisionSwapped ? 'yes' : 'no');
-                        }}
-                    />
-                    <span className={clsx(
-                        "absolute left-full ml-2 text-[10px] font-bold transition-colors pointer-events-none whitespace-nowrap",
-                        ((!data.decisionSwapped && data.decision === 'no') || (data.decisionSwapped && data.decision === 'yes'))
-                            ? (data.decisionSwapped ? "text-green-500" : "text-red-500")
-                            : "text-gray-600"
-                    )}>{data.decisionSwapped ? 'YES' : 'NO'}</span>
-                </div>
+            {/* Repositioned Yes/No Labels next to stacked handles on the right */}
+            <div className="absolute -right-8 top-[33.33%] -translate-y-1/2 pointer-events-none">
+                <span className={clsx(
+                    "text-[10px] font-bold transition-colors whitespace-nowrap",
+                    ((!data.decisionSwapped && data.decision === 'yes') || (data.decisionSwapped && data.decision === 'no'))
+                        ? (data.decisionSwapped ? "text-red-500" : "text-green-500")
+                        : "text-gray-600"
+                )}>{data.decisionSwapped ? 'NO' : 'YES'}</span>
             </div>
+            <div className="absolute -right-8 top-[66.66%] -translate-y-1/2 pointer-events-none">
+                <span className={clsx(
+                    "text-[10px] font-bold transition-colors whitespace-nowrap",
+                    ((!data.decisionSwapped && data.decision === 'no') || (data.decisionSwapped && data.decision === 'yes'))
+                        ? (data.decisionSwapped ? "text-green-500" : "text-red-500")
+                        : "text-gray-600"
+                )}>{data.decisionSwapped ? 'YES' : 'NO'}</span>
+            </div>
+
         </div>
     );
 });

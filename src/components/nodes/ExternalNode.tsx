@@ -2,6 +2,8 @@ import { useRef, useLayoutEffect } from 'react';
 import { Activity, Link as LinkIcon, ExternalLink, CheckSquare, Circle, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 import { type Node, useStore } from '../../store/store';
+import { NodeHandles } from './NodeHandles';
+
 
 const statusColors: Record<string, string> = {
     'pending': 'bg-gray-500',
@@ -47,12 +49,7 @@ export function ExternalNode({ node, selected, onConnectionStart }: ExternalNode
         }
     }, [node.data, node.width, node.height, updateNodeDimensions, node.id]);
 
-    const handleMouseDown = (e: React.MouseEvent, handleType: 'source' | 'target', handleId: string) => {
-        e.stopPropagation();
-        if (onConnectionStart) {
-            onConnectionStart(node.id, handleType, e.clientX, e.clientY, handleId);
-        }
-    };
+
 
     const StatusIcon = (node.data.status && statusIcons[node.data.status]) || Circle;
 
@@ -150,35 +147,12 @@ export function ExternalNode({ node, selected, onConnectionStart }: ExternalNode
                 )}
             </div>
 
-            {/* Connection Handles */}
-            <div
-                className="connection-handle absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full cursor-crosshair opacity-0 group-hover:opacity-100 transition-opacity border-2 border-[var(--bg-main)] shadow-sm z-50"
-                data-node-id={node.id}
-                data-handle-type="target"
-                data-handle-id="left"
-                onMouseDown={(e) => handleMouseDown(e, 'target', 'left')}
+            {/* Standard 4-side handles */}
+            <NodeHandles
+                nodeId={node.id}
+                onConnectionStart={onConnectionStart}
             />
-            <div
-                className="connection-handle absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full cursor-crosshair opacity-0 group-hover:opacity-100 transition-opacity border-2 border-white shadow-sm z-50"
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="right"
-                onMouseDown={(e) => handleMouseDown(e, 'source', 'right')}
-            />
-            <div
-                className="connection-handle absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full cursor-crosshair opacity-0 group-hover:opacity-100 transition-opacity border-2 border-white shadow-sm z-50"
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="top"
-                onMouseDown={(e) => handleMouseDown(e, 'source', 'top')}
-            />
-            <div
-                className="connection-handle absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full cursor-crosshair opacity-0 group-hover:opacity-100 transition-opacity border-2 border-white shadow-sm z-50"
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="bottom"
-                onMouseDown={(e) => handleMouseDown(e, 'source', 'bottom')}
-            />
+
         </div>
     );
 }

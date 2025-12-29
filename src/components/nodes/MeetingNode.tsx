@@ -1,6 +1,8 @@
 import { memo } from 'react';
 import { Calendar, Clock, Users, FileText } from 'lucide-react';
+import { NodeHandles } from './NodeHandles';
 import { clsx } from 'clsx';
+
 import type { NodeProps } from '../../registry/NodeRegistry';
 
 export const MeetingNode = memo(({ node, selected, onConnectionStart }: NodeProps) => {
@@ -60,32 +62,12 @@ export const MeetingNode = memo(({ node, selected, onConnectionStart }: NodeProp
                 ) : null}
             </div>
 
-            {/* Handles */}
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-[var(--bg-main)] border-2 border-[var(--border-color)] rounded-full z-20 cursor-crosshair connection-handle hover:border-orange-500 hover:bg-orange-500/20 transition-all",
-                    "-left-1.5 top-1/2 -translate-y-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="target"
-                data-handle-id="left"
+            {/* Standard 4-side handles */}
+            <NodeHandles
+                nodeId={node.id}
+                onConnectionStart={onConnectionStart}
             />
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-[var(--bg-main)] border-2 border-[var(--border-color)] rounded-full z-20 cursor-crosshair connection-handle hover:border-orange-500 hover:bg-orange-500/20 transition-all",
-                    "-right-1.5 top-1/2 -translate-y-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="right"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (onConnectionStart) {
-                        onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'right');
-                    }
-                }}
-            />
+
         </div>
     );
 });

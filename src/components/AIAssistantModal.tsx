@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { X, Sparkles, Loader2, Check, AlertCircle, Wand2, FileText, Edit } from 'lucide-react';
 import { useStore } from '../store/store';
 import { generateFlowFromPrompt, analyzeFlow, modifyFlow } from '../utils/aiService';
+import { calculateAutoLayout } from '../utils/autoLayout';
+
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import clsx from 'clsx';
@@ -43,10 +45,19 @@ export function AIAssistantModal({ onClose, initialTab = 'generate' }: AIAssista
         setIsLoading(true);
         try {
             const { nodes: newNodes, edges: newEdges } = await generateFlowFromPrompt(prompt, apiKey);
-            loadState({ nodes: newNodes, edges: newEdges });
+
+            // Apply Auto-Layout before loading
+            const layoutUpdates = calculateAutoLayout(newNodes, newEdges);
+            const positionedNodes = newNodes.map(node => {
+                const update = layoutUpdates.find(u => u.id === node.id);
+                return update ? { ...node, position: update.position } : node;
+            });
+
+            loadState({ nodes: positionedNodes, edges: newEdges });
             await saveCurrentFlow();
             toast.success("Flow generated successfully!");
             onClose();
+
         } catch (error: any) {
             toast.error("Generation failed: " + error.message);
         } finally {
@@ -61,10 +72,19 @@ export function AIAssistantModal({ onClose, initialTab = 'generate' }: AIAssista
         setIsLoading(true);
         try {
             const result = await modifyFlow(nodes, edges, prompt, apiKey);
-            loadState(result);
+
+            // Apply Auto-Layout before loading
+            const layoutUpdates = calculateAutoLayout(result.nodes, result.edges);
+            const positionedNodes = result.nodes.map(node => {
+                const update = layoutUpdates.find(u => u.id === node.id);
+                return update ? { ...node, position: update.position } : node;
+            });
+
+            loadState({ nodes: positionedNodes, edges: result.edges });
             await saveCurrentFlow();
             toast.success("Flow updated successfully!");
             onClose();
+
         } catch (error: any) {
             toast.error("Modification failed: " + error.message);
         } finally {
@@ -90,10 +110,18 @@ export function AIAssistantModal({ onClose, initialTab = 'generate' }: AIAssista
     const handleApplyImprovements = async () => {
         if (!improvedFlow) return;
         try {
-            loadState(improvedFlow);
+            // Apply Auto-Layout before loading
+            const layoutUpdates = calculateAutoLayout(improvedFlow.nodes, improvedFlow.edges);
+            const positionedNodes = improvedFlow.nodes.map(node => {
+                const update = layoutUpdates.find(u => u.id === node.id);
+                return update ? { ...node, position: update.position } : node;
+            });
+
+            loadState({ nodes: positionedNodes, edges: improvedFlow.edges });
             await saveCurrentFlow();
             toast.success("Improvements applied successfully!");
             onClose();
+
         } catch (error) {
             toast.error("Failed to apply improvements");
         }

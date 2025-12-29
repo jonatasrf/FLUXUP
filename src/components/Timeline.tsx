@@ -58,7 +58,8 @@ export function Timeline({ onTaskClick, onClose }: TimelineProps) {
     // Filter tasks
     const timelineTasks = useMemo(() => {
         const dimmedElements = calculateReachability(nodes, edges);
-        const analysisTypes = ['swot', 'pdca', 'prioritization', 'fmea', 'ishikawa', 'fiveWTwoH', 'meeting', 'projectCharter', 'stakeholderMatrix', 'wbs', 'external', 'document', 'decision'];
+        const analysisTypes = ['swot', 'pdca', 'prioritization', 'fmea', 'ishikawa', 'fiveWTwoH', 'meeting', 'projectCharter', 'stakeholderMatrix', 'wbs', 'external', 'document', 'decision', 'note'];
+
 
         // 1. Process Standard Tasks (with explicit dates)
         const standardTasks = nodes
@@ -533,7 +534,7 @@ export function Timeline({ onTaskClick, onClose }: TimelineProps) {
                         ref={scrollContainerRef}
                         className={clsx(
                             "flex-1 overflow-auto relative w-full no-scrollbar",
-                            isDragging ? "cursor-grabbing" : "cursor-grab"
+                            isDragging ? "cursor-move" : "cursor-default"
                         )}
                         onScroll={(e) => {
                             if (sidebarContentRef.current) {
@@ -557,7 +558,7 @@ export function Timeline({ onTaskClick, onClose }: TimelineProps) {
                             initialScrollLeft.current = scrollContainerRef.current.scrollLeft;
                             initialScrollTop.current = scrollContainerRef.current.scrollTop;
 
-                            document.body.style.cursor = 'grabbing';
+                            document.body.style.cursor = 'move';
                         }}
                     >
                         {/* Grid Lines */}

@@ -39,19 +39,8 @@ const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 3)
   throw lastError;
 };
 
-export const generateFlowFromPrompt = async (prompt: string, apiKey: string): Promise<{ nodes: Node[], edges: Edge[] }> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing");
-  }
-
-  if (!apiKey.startsWith('AIza')) {
-    throw new Error("Invalid API Key: Google Gemini keys usually start with 'AIza'. Please check your key.");
-  }
-
-  const systemPrompt = `Expert flowchart designer for FluxUp. Create detailed flowchart from user description.
-
-SCHEMA:
-{
+// Shared Schema Definition to ensure consistency across Generate, Analyze, and Modify
+const FLOW_SCHEMA = `{
   "nodes": [{
     "id": "string",
     "type": "task"|"decision"|"note"|"document"|"external"|"meeting"|"fmea"|"ishikawa"|"pdca"|"fiveWTwoH"|"swot"|"prioritization"|"projectCharter"|"stakeholderMatrix"|"wbs",
@@ -82,16 +71,108 @@ SCHEMA:
     }
   }],
   "edges": [{
-    "id": "string", "source": "string", "target": "string", "sourceHandle": "yes"|"no", "label": "string"
+    "id": "string", "source": "string", "target": "string", "sourceHandle": "yes"|"no"|"right"|"bottom"|"top", "label": "string"
   }]
-}
+}`;
 
-RULES:
-1. **CONNECTIVITY**: ALL nodes MUST be connected. Place FMEA, Ishikawa, PDCA, etc., in the middle of the flow.
-2. **DECISION NODES**: Use THREE handles (left for input, yes/no for outputs). Specify "sourceHandle": "yes"/"no" on outgoing edges.
-3. **LAYOUT**: Use HORIZONTAL Left-to-Right layout. Increase X by 300px for each step. Stack branches on Y (-150/150).
-4. **DETAILS**: Add realistic labels, descriptions and assignees based on user prompt.
-5. **DATES**: For tasks, ALWAYS provide BOTH "startDate" and "dueDate". If not specified by the user, assume "startDate" is TODAY ({today}) and "dueDate" is 3 days after.
+// Shared Rules for Robust Content and Logic
+const SYSTEM_RULES = `RULES:
+0. **ROBUST CONTENT (CRITICAL)**:
+   - **NO EMPTY FIELDS**: Every single field MUST be filled with specific, realistic data.
+   - **NO PLACEHOLDERS**: forbidden words: "TBD", "Pending", "Item 1", "Description here", "Insert text".
+   - **Detailed Descriptions**: Write at least 2 sentences for descriptions.
+   - **Complete Arrays**: For lists (causes, steps), provide 3-5 distinct items.
+   - **Project Charter/WBS/Matrix**: MUST be fully populated with realistic business data.
+
+1. **CONNECTIVITY**: ALL nodes MUST be connected.
+2. **EDGES (LOGIC ONLY)**:
+   - OUTPUT ONLY: "id", "source", "target", "label".
+   - **DO NOT** output "sourceHandle" or "targetHandle". The application will automatically calculate the best routing.
+3. **DECISION NODES**:
+   - For logic, you still need to distinguish purely by LABEL.
+   - Label edges exiting decision nodes as "Yes" or "No" (or "Sim"/"Não").
+4. **LAYOUT**: Use HORIZONTAL Left-to-Right layout. Increase X by 300px for each step. Stack branches on Y (-150/150).
+
+5. **DETAILS**: Add realistic labels, descriptions and assignees.
+6. **DATES**: For tasks, ALWAYS provide BOTH "startDate" (TODAY: {today}) and "dueDate" (startDate + 3 days).
+7. **RETURN EDGES**: Just connect Source to Target. The App handles the visual loop.`;
+
+// Helper to force standardized handles: Left=Arrival, Right=Departure, Top/Bottom=Return
+const forceSmartHandles = (nodes: Node[], edges: Edge[]) => {
+  return edges.map(edge => {
+    const sourceNode = nodes.find(n => n.id === edge.source);
+    const targetNode = nodes.find(n => n.id === edge.target);
+
+    if (sourceNode && targetNode) {
+
+      // DECISION NODE SPECIAL LOGIC
+      if (sourceNode.type === 'decision') {
+        const label = (edge.label || '').toLowerCase();
+        let sHandle = edge.sourceHandle;
+
+        if (label === 'yes' || label === 'sim') sHandle = 'yes';
+        else if (label === 'no' || label === 'não' || label === 'nao') sHandle = 'no';
+
+        if (sHandle !== 'yes' && sHandle !== 'no') {
+          if (label.includes('yes') || label.includes('sim')) sHandle = 'yes';
+          else sHandle = 'no';
+        }
+
+        // For decision targets, we still want to be smart about entry point
+        const dx = targetNode.position.x - sourceNode.position.x;
+        const dy = targetNode.position.y - sourceNode.position.y;
+        const isVertical = Math.abs(dy) > Math.abs(dx) && dy > 0; // Target is below
+
+        return {
+          ...edge,
+          sourceHandle: sHandle,
+          targetHandle: isVertical ? 'top' : 'left'
+        };
+      }
+
+      // STANDARD NODE LOGIC
+      const dx = targetNode.position.x - sourceNode.position.x;
+      const dy = targetNode.position.y - sourceNode.position.y;
+
+      const isVerticalStack = Math.abs(dy) > Math.abs(dx) + 50;
+
+      if (isVerticalStack) {
+        // VERTICAL CONNECTION
+        if (dy > 0) { // Target is BELOW
+          return { ...edge, sourceHandle: 'bottom', targetHandle: 'top' };
+        } else { // Target is ABOVE
+          return { ...edge, sourceHandle: 'top', targetHandle: 'bottom' };
+        }
+      } else {
+        // HORIZONTAL CONNECTION
+        if (dx >= 0) { // Target is RIGHT
+          return { ...edge, sourceHandle: 'right', targetHandle: 'left' };
+        } else { // Target is LEFT
+          return { ...edge, sourceHandle: 'bottom', targetHandle: 'bottom' };
+        }
+      }
+    }
+    return edge;
+  });
+};
+
+
+export const generateFlowFromPrompt = async (prompt: string, apiKey: string): Promise<{ nodes: Node[], edges: Edge[] }> => {
+
+  if (!apiKey) {
+    throw new Error("API Key is missing");
+  }
+
+  if (!apiKey.startsWith('AIza')) {
+    throw new Error("Invalid API Key: Google Gemini keys usually start with 'AIza'. Please check your key.");
+  }
+
+  const systemPrompt = `Expert flowchart designer for FluxUp. Create detailed flowchart from user description.
+
+SCHEMA:
+${FLOW_SCHEMA}
+
+${SYSTEM_RULES}
 `.trim();
 
   try {
@@ -149,10 +230,18 @@ RULES:
       if (n.type === 'stakeholderMatrix') { width = 600; height = 400; }
       if (n.type === 'wbs') { width = 600; height = 400; }
 
+      const validTypes = ['task', 'decision', 'note', 'document', 'external', 'meeting', 'fmea', 'ishikawa', 'pdca', 'fiveWTwoH', 'swot', 'prioritization', 'projectCharter', 'stakeholderMatrix', 'wbs'];
+      let safeType = n.type;
+      if (!validTypes.includes(safeType)) {
+        console.warn(`AI generated invalid type: ${safeType}, defaulting to 'task'`);
+        safeType = 'task'; // Fallback to task instead of allowing generic/unknown types
+      }
+
       return {
         id: n.id || `node-${index}-${Date.now()}`,
-        type: n.type || 'task',
+        type: safeType,
         position: n.position || { x: index * 300, y: 100 },
+
         width,
         height,
         data: {
@@ -173,7 +262,9 @@ RULES:
       animated: true
     }));
 
-    return { nodes, edges };
+    const finalEdges = forceSmartHandles(nodes, edges);
+
+    return { nodes, edges: finalEdges };
 
   } catch (error) {
     console.error("AI Generation Error:", error);
@@ -219,6 +310,8 @@ const sanitizeFlowForAI = (nodes: Node[], edges: Edge[]) => {
         x: Math.round(position.x),
         y: Math.round(position.y)
       },
+      width: node.width,
+      height: node.height,
       data
     };
   });
@@ -246,9 +339,10 @@ export const analyzeFlow = async (nodes: Node[], edges: Edge[], apiKey: string):
         "improvedFlow": { "nodes": [...], "edges": [...] }
     }
 
-    RULES:
-    1. Management tools MUST have BOTH incoming AND outgoing edges.
-    2. Decision nodes MUST specify sourceHandle: "yes"/"no" on outputs.
+    SCHEMA:
+    ${FLOW_SCHEMA}
+
+    ${SYSTEM_RULES}
     `;
 
   try {
@@ -284,10 +378,15 @@ export const analyzeFlow = async (nodes: Node[], edges: Edge[], apiKey: string):
 
     try {
       const parsed = JSON.parse(content);
+      const finalEdges = forceSmartHandles(parsed.improvedFlow.nodes, parsed.improvedFlow.edges);
       return {
         analysis: parsed.analysis,
-        improvedFlow: parsed.improvedFlow
+        improvedFlow: {
+          nodes: parsed.improvedFlow.nodes,
+          edges: finalEdges
+        }
       };
+
     } catch (parseError) {
       console.error("JSON Parse Error. Raw Content:", content);
       throw new Error("Failed to parse AI response. See console for details.");
@@ -307,10 +406,10 @@ export const modifyFlow = async (nodes: Node[], edges: Edge[], prompt: string, a
     OUTPUT: Valid JSON only.
     { "nodes": [...], "edges": [...] }
 
-    RULES:
-    1. Return COMPLETE flow with modifications.
-    2. Place Management tools in the MIDDLE of the flow.
-    3. Decision nodes MUST specify sourceHandle on outputs.
+    SCHEMA:
+    ${FLOW_SCHEMA}
+
+    ${SYSTEM_RULES}
     `;
 
   try {
@@ -346,7 +445,9 @@ export const modifyFlow = async (nodes: Node[], edges: Edge[], prompt: string, a
 
     try {
       const parsed = JSON.parse(content);
-      return { nodes: parsed.nodes, edges: parsed.edges };
+      const finalEdges = forceSmartHandles(parsed.nodes, parsed.edges);
+      return { nodes: parsed.nodes, edges: finalEdges };
+
     } catch (parseError) {
       console.error("JSON Parse Error. Raw Content:", content);
       throw new Error("Failed to parse AI response. See console for details.");

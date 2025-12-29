@@ -98,12 +98,20 @@ body {
 
   /* Flow Editor Canvas Cursor */
   .flow-canvas-container {
-    cursor: grab;
+    cursor: default;
   }
 
   .flow-canvas-container:active {
-    cursor: grabbing;
+    cursor: move;
   }
+
+
+
+
+
+
+
+
 }
 
 @keyframes flow {

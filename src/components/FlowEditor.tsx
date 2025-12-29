@@ -15,7 +15,7 @@ import { AIAssistantModal } from './AIAssistantModal';
 import { RenameFlowModal } from './RenameFlowModal';
 import { KanbanBoard } from './KanbanBoard';
 import { TableView } from './TableView';
-import { getHandlePosition, getBezierPath, getNodeDimensions } from '../utils/flowGeometry';
+import { getHandlePosition, getOrthogonalPath, getNodeDimensions } from '../utils/flowGeometry';
 import { calculateAutoLayout } from '../utils/autoLayout';
 import { DraggableNode } from './DraggableNode';
 
@@ -53,7 +53,9 @@ const FlowEditorContent = () => {
         exportCurrentFlow,
         copyNodes,
         pasteNodes,
+        updateEdge,
         canvasColor
+
     } = useStore();
 
     // Keyboard Delete Handler
@@ -181,8 +183,9 @@ const FlowEditorContent = () => {
     const overdueTasks = useMemo(() => {
         const now = new Date();
         return nodes.filter(n => {
-            if (n.type !== 'task' || n.data.status === 'completed' || n.data.status === 'done') return false;
+            if (n.type === 'note' || n.type !== 'task' || n.data.status === 'completed' || n.data.status === 'done') return false;
             if (!n.data.dueDate) return false;
+
             const dueDate = new Date(n.data.dueDate);
             return dueDate < now;
         });
@@ -196,7 +199,7 @@ const FlowEditorContent = () => {
     const gRef = useRef<SVGGElement>(null);
     const zoomBehavior = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
 
-    // Connection Drag State
+    // Connection Drag State (New connection)
     const [connectionDrag, setConnectionDrag] = useState<{
         active: boolean;
         sourceId: string | null;
@@ -204,6 +207,17 @@ const FlowEditorContent = () => {
         startPos: { x: number; y: number } | null;
         currentPos: { x: number; y: number } | null;
     }>({ active: false, sourceId: null, startPos: null, currentPos: null });
+
+    // Edge Reconnection/Rerouting State
+    const [edgeDrag, setEdgeDrag] = useState<{
+        active: boolean;
+        edgeId: string | null;
+        type: 'source' | 'target' | 'segment' | null;
+        segmentIndex?: number;
+        startPos: { x: number; y: number } | null;
+        currentPos: { x: number; y: number } | null;
+    }>({ active: false, edgeId: null, type: null, startPos: null, currentPos: null });
+
 
     // Setup Zoom and Pan
     useEffect(() => {
@@ -218,15 +232,18 @@ const FlowEditorContent = () => {
                 // Prevent zoom/pan start if clicking on connection handles or interactive elements
                 const target = event.target as HTMLElement;
                 const isConnectionHandle = target.closest('.connection-handle');
+                const isEdgeInteraction = target.closest('.edge-interaction');
                 const isButton = target.closest('button');
                 const isInput = target.closest('input');
+
                 const isTextarea = target.closest('textarea');
                 const isResizeHandle = target.closest('.resize-handle');
 
                 // Standard D3 filter: !event.ctrlKey && !event.button (left click only)
                 // Also filter out Shift key for selection box
-                return !event.ctrlKey && !event.button && !event.shiftKey && !isConnectionHandle && !isButton && !isInput && !isTextarea && !isResizeHandle;
+                return !event.ctrlKey && !event.button && !event.shiftKey && !isConnectionHandle && !isButton && !isInput && !isTextarea && !isResizeHandle && !isEdgeInteraction;
             })
+
             .on('zoom', (event) => {
                 g.attr('transform', event.transform);
                 setTransform({ x: event.transform.x, y: event.transform.y, k: event.transform.k });
@@ -266,7 +283,7 @@ const FlowEditorContent = () => {
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            if (!connectionDrag.active) return;
+            if (!connectionDrag.active && !edgeDrag.active) return;
 
             const svg = svgRef.current;
             if (!svg) return;
@@ -279,43 +296,66 @@ const FlowEditorContent = () => {
             const worldX = (svgPoint.x - transform.x) / transform.k;
             const worldY = (svgPoint.y - transform.y) / transform.k;
 
-            setConnectionDrag(prev => ({ ...prev, currentPos: { x: worldX, y: worldY } }));
+            if (connectionDrag.active) {
+                setConnectionDrag(prev => ({ ...prev, currentPos: { x: worldX, y: worldY } }));
+            } else if (edgeDrag.active) {
+                setEdgeDrag(prev => ({ ...prev, currentPos: { x: worldX, y: worldY } }));
+            }
         };
 
         const handleMouseUp = (e: MouseEvent) => {
-            if (!connectionDrag.active) return;
+            if (!connectionDrag.active && !edgeDrag.active) return;
 
             const target = e.target as HTMLElement;
-            // Check if dropped on a target handle
-            if (target.classList.contains('connection-handle')) {
-                const targetId = target.dataset.nodeId;
-                const targetHandleId = target.dataset.handleId;
+            const isHandle = target.classList.contains('connection-handle');
 
-                if (targetId) {
-                    // Create Edge
-                    const sourceNode = nodes.find(n => n.id === connectionDrag.sourceId);
-                    const isNote = sourceNode?.type === 'note';
+            if (connectionDrag.active) {
+                if (isHandle) {
+                    const targetId = target.dataset.nodeId;
+                    const targetHandleId = target.dataset.handleId;
 
-                    const newEdge = {
-                        id: `e${connectionDrag.sourceId}-${targetId}-${Date.now()}`,
-                        source: connectionDrag.sourceId!,
-                        target: targetId,
-                        sourceHandle: connectionDrag.sourceHandleId,
-                        targetHandle: targetHandleId,
-                        animated: !isNote,
-                        style: isNote ? 'dashed' as const : 'solid' as const,
-                        markerEnd: !isNote,
-                        color: isNote ? '#facc15' : undefined
-                    };
-                    addEdge(newEdge);
-                    toast.success("Connected!");
+                    if (targetId) {
+                        const sourceNode = nodes.find(n => n.id === connectionDrag.sourceId);
+                        const isNote = sourceNode?.type === 'note';
+
+                        const newEdge = {
+                            id: `e${connectionDrag.sourceId}-${targetId}-${Date.now()}`,
+                            source: connectionDrag.sourceId!,
+                            target: targetId,
+                            sourceHandle: connectionDrag.sourceHandleId,
+                            targetHandle: targetHandleId,
+                            animated: !isNote,
+                            style: isNote ? 'dashed' as const : 'solid' as const,
+                            markerEnd: !isNote,
+                            color: isNote ? '#facc15' : undefined
+                        };
+                        addEdge(newEdge);
+                        toast.success("Connected!");
+                    }
                 }
-            }
+                setConnectionDrag({ active: false, sourceId: null, startPos: null, currentPos: null });
 
-            setConnectionDrag({ active: false, sourceId: null, sourceHandleId: undefined, startPos: null, currentPos: null });
+            } else if (edgeDrag.active) {
+                if (edgeDrag.type === 'source' || edgeDrag.type === 'target') {
+
+                    if (isHandle) {
+                        const nodeId = target.dataset.nodeId;
+                        const handleId = target.dataset.handleId;
+                        if (nodeId && handleId && edgeDrag.edgeId) {
+                            updateEdge(edgeDrag.edgeId, {
+                                [edgeDrag.type]: nodeId,
+                                [`${edgeDrag.type}Handle`]: handleId,
+                                pathPoints: [] // Reset manual path when reconnected
+                            });
+                            toast.success("Edge reconnected!");
+                        }
+                    }
+                }
+                setEdgeDrag({ active: false, edgeId: null, type: null, startPos: null, currentPos: null });
+            }
         };
 
-        // Attach global listeners for drag move and up only
+
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
 
@@ -323,7 +363,8 @@ const FlowEditorContent = () => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [connectionDrag.active, connectionDrag.sourceId, connectionDrag.sourceHandleId, transform, addEdge, nodes]);
+    }, [connectionDrag.active, connectionDrag.sourceId, connectionDrag.sourceHandleId, edgeDrag.active, edgeDrag.edgeId, edgeDrag.type, transform, addEdge, updateEdge, nodes]);
+
 
     const zoomToNode = useCallback((nodeId: string) => {
         const node = nodes.find(n => n.id === nodeId);
@@ -741,6 +782,56 @@ const FlowEditorContent = () => {
     // Render Edges
     // Render Edges - Memoized
     const renderedEdges = useMemo(() => {
+        // Pre-calculate incoming edges per node+handle to stack them
+        const incomingEdgesMap = new Map<string, { edgeId: string; sortPos: number }[]>();
+        // Pre-calculate outgoing edges per node+handle to stack them
+        const outgoingEdgesMap = new Map<string, { edgeId: string; sortPos: number }[]>();
+
+        edges.forEach(edge => {
+            const sourceNode = nodes.find(n => n.id === edge.source);
+            const targetNode = nodes.find(n => n.id === edge.target);
+
+            if (!sourceNode || !targetNode) return;
+
+            // Incoming Logic (Target)
+            const tHandle = edge.targetHandle || 'left';
+            const tKey = `${edge.target}_${tHandle}`;
+            if (!incomingEdgesMap.has(tKey)) incomingEdgesMap.set(tKey, []);
+
+            // Sort by source X if entering Top/Bottom, else source Y
+            const tSortPos = (tHandle.includes('top') || tHandle.includes('bottom'))
+                ? sourceNode.position.x
+                : sourceNode.position.y;
+
+            incomingEdgesMap.get(tKey)!.push({
+                edgeId: edge.id,
+                sortPos: tSortPos
+            });
+
+            // Outgoing Logic (Source)
+            const sHandle = edge.sourceHandle || 'right';
+            const sKey = `${edge.source}_${sHandle}`;
+            if (!outgoingEdgesMap.has(sKey)) outgoingEdgesMap.set(sKey, []);
+
+            // Sort by target X if exiting Top/Bottom, else target Y
+            const sSortPos = (sHandle.includes('top') || sHandle.includes('bottom'))
+                ? targetNode.position.x
+                : targetNode.position.y;
+
+            outgoingEdgesMap.get(sKey)!.push({
+                edgeId: edge.id,
+                sortPos: sSortPos
+            });
+        });
+
+        // Sort both maps to avoid crossing lines
+        incomingEdgesMap.forEach(list => list.sort((a, b) => a.sortPos - b.sortPos));
+        outgoingEdgesMap.forEach(list => list.sort((a, b) => a.sortPos - b.sortPos));
+
+        // Calculate global floor (lowest Y position) for safe routing
+        const globalMaxY = nodes.reduce((max, node) => Math.max(max, node.position.y + (node.height || 100)), 0);
+        const routeFloorY = globalMaxY + 50; // Buffer space below the lowest node
+
         return edges.map((edge, idx) => {
             const source = nodes.find(n => n.id === edge.source);
             const target = nodes.find(n => n.id === edge.target);
@@ -749,37 +840,85 @@ const FlowEditorContent = () => {
 
             const sourcePos = getHandlePosition(source, edge.sourceHandle, 'right');
             const targetPos = getHandlePosition(target, edge.targetHandle, 'left');
-            const sourceX = sourcePos.x;
-            const sourceY = sourcePos.y;
-            const targetX = targetPos.x;
-            const targetY = targetPos.y;
+
+            let finalSourceX = sourcePos.x;
+            let finalSourceY = sourcePos.y;
+            let finalTargetX = targetPos.x;
+            let finalTargetY = targetPos.y;
+
+            const spacing = 18;
+
+            // 1. Apply Target Offset (Incoming)
+            let tHandle = edge.targetHandle || 'left';
+            if (tHandle === 'target') tHandle = 'left';
+            const tSiblings = incomingEdgesMap.get(`${edge.target}_${tHandle}`);
+            if (tSiblings && tSiblings.length > 1) {
+                const index = tSiblings.findIndex(s => s.edgeId === edge.id);
+                if (index !== -1) {
+                    const totalOffset = (tSiblings.length - 1) * spacing;
+                    const offset = -totalOffset / 2 + index * spacing;
+
+                    if (tHandle.includes('top') || tHandle.includes('bottom')) {
+                        finalTargetX += offset;
+                    } else {
+                        finalTargetY += offset;
+                    }
+                }
+            }
+
+            // 2. Apply Source Offset (Outgoing)
+            let sHandle = edge.sourceHandle || 'right';
+            if (sHandle === 'source') sHandle = 'right';
+            const sSiblings = outgoingEdgesMap.get(`${edge.source}_${sHandle}`);
+            if (sSiblings && sSiblings.length > 1) {
+                const index = sSiblings.findIndex(s => s.edgeId === edge.id);
+                if (index !== -1) {
+                    const totalOffset = (sSiblings.length - 1) * spacing;
+                    const offset = -totalOffset / 2 + index * spacing;
+
+                    if (sHandle.includes('top') || sHandle.includes('bottom')) {
+                        finalSourceX += offset;
+                    } else {
+                        finalSourceY += offset;
+                    }
+                }
+            }
+
 
             const isPointConnection = source.type === 'point' || target.type === 'point';
             let pathData = '';
-            let cp1x: number | undefined, cp1y: number | undefined, cp2x: number | undefined, cp2y: number | undefined;
+            let labelCenter = { x: 0, y: 0 };
 
             if (isPointConnection) {
-                pathData = `M${sourceX},${sourceY} L${targetX},${targetY}`;
+
+                pathData = `M${finalSourceX},${finalSourceY} L${finalTargetX},${finalTargetY}`;
+                labelCenter = { x: (finalSourceX + finalTargetX) / 2, y: (finalSourceY + finalTargetY) / 2 };
             } else {
-                const bezier = getBezierPath(sourcePos, targetPos, edge.sourceHandle, edge.targetHandle);
-                pathData = bezier.pathData;
-                cp1x = bezier.cp1x;
-                cp1y = bezier.cp1y;
-                cp2x = bezier.cp2x;
-                cp2y = bezier.cp2y;
+
+                const orthogonal = getOrthogonalPath(
+
+                    { x: finalSourceX, y: finalSourceY },
+                    { x: finalTargetX, y: finalTargetY },
+                    edge.sourceHandle,
+                    edge.targetHandle,
+                    routeFloorY,
+                    edge.pathPoints
+                );
+
+                pathData = orthogonal.pathData;
+
+
+                labelCenter = orthogonal.center;
+
+
+
             }
 
-            let midX, midY;
-            if (isPointConnection) {
-                midX = (sourceX + targetX) / 2;
-                midY = (sourceY + targetY) / 2;
-            } else {
-                // Bezier midpoint at t=0.5
-                // B(0.5) = (1-0.5)^3*P0 + 3*(1-0.5)^2*0.5*P1 + 3*(1-0.5)*0.5^2*P2 + 0.5^3*P3
-                //        = 0.125*P0 + 0.375*P1 + 0.375*P2 + 0.125*P3
-                midX = 0.125 * sourceX + 0.375 * cp1x! + 0.375 * cp2x! + 0.125 * targetX;
-                midY = 0.125 * sourceY + 0.375 * cp1y! + 0.375 * cp2y! + 0.125 * targetY;
-            }
+
+            const midX = labelCenter.x;
+            const midY = labelCenter.y;
+
+            const isSelected = selectedEdgeId === edge.id;
             const isCritical = criticalPathData.edges.has(edge.id);
             const isSourceCompleted = isNodeEffectivelyCompleted(source.id);
             const isTargetCompleted = isNodeEffectivelyCompleted(target.id);
@@ -797,19 +936,101 @@ const FlowEditorContent = () => {
             else if (isTargetInferredOverdue) { strokeColor = "#eab308"; shadowClass = "drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]"; }
             else if (isPastFlow) { strokeColor = "#00ff00"; shadowClass = "drop-shadow-[0_0_8px_rgba(0,255,0,0.6)]"; }
 
+            if (isSelected) strokeColor = "#f97316";
+
             return (
                 <g key={edge.id || `edge-${idx}`} className="group/edge">
-                    <path d={pathData} fill="none" stroke={strokeColor} strokeWidth={isCritical ? 3 : 2}
+                    {/* Interaction Path (Thicker for easier clicking) */}
+                    <path d={pathData} fill="none" stroke="transparent" strokeWidth={15}
+                        onClick={(e) => { e.stopPropagation(); setSelectedEdge(edge.id); }} className="cursor-pointer" />
+
+                    {/* Visible Path */}
+                    <path
+                        d={pathData}
+                        fill="none"
+                        stroke={strokeColor}
+                        strokeWidth={isSelected ? 3 : (isCritical ? 3 : 2)}
                         strokeDasharray={edge.style === 'dashed' ? "5,5" : edge.style === 'dotted' ? "2,2" : "0"}
-                        markerEnd={edge.markerEnd !== false ? (isCritical ? "url(#arrowhead-critical)" : "url(#arrowhead)") : undefined}
+                        markerEnd={edge.markerEnd !== false ? (isCritical ? "url(#arrowhead-critical)" : (isSelected ? "url(#arrowhead-selected)" : "url(#arrowhead)")) : undefined}
                         onClick={(e) => { e.stopPropagation(); setSelectedEdge(edge.id); }}
                         className={clsx("cursor-pointer transition-colors", shadowClass, shouldAnimate && "animate-flow")}
                     />
-                    <path d={pathData} fill="none" stroke="transparent" strokeWidth={20}
-                        onClick={(e) => { e.stopPropagation(); setSelectedEdge(edge.id); }} className="cursor-pointer" />
+
+                    {/* Reconnection Handles */}
+                    {isSelected && (
+                        <>
+                            {/* Source Handle */}
+                            <circle
+                                cx={finalSourceX}
+                                cy={finalSourceY}
+                                r={5}
+                                fill="#f97316"
+                                className="cursor-move hover:scale-125 transition-transform edge-interaction"
+                                onMouseDown={(e) => {
+
+                                    e.stopPropagation();
+                                    setEdgeDrag({
+                                        active: true,
+                                        edgeId: edge.id,
+                                        type: 'source',
+                                        startPos: { x: finalSourceX, y: finalSourceY },
+                                        currentPos: { x: finalSourceX, y: finalSourceY }
+                                    });
+                                }}
+                            />
+                            {/* Target Handle */}
+                            <circle
+                                cx={finalTargetX}
+                                cy={finalTargetY}
+                                r={5}
+                                fill="#f97316"
+                                className="cursor-move hover:scale-125 transition-transform edge-interaction"
+                                onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                    setEdgeDrag({
+                                        active: true,
+                                        edgeId: edge.id,
+                                        type: 'target',
+                                        startPos: { x: finalTargetX, y: finalTargetY },
+                                        currentPos: { x: finalTargetX, y: finalTargetY }
+                                    });
+                                }}
+                            />
+                        </>
+                    )}
+
+
+                    {/* Mask for Line Jumps (Lombada) */}
+                    <path
+                        d={pathData}
+                        fill="none"
+                        stroke="var(--bg-main)"
+                        strokeWidth={4}
+                        strokeLinecap="round"
+                    />
+
+                    {/* Main Visible Path */}
+                    <path
+                        d={pathData}
+                        fill="none"
+                        stroke={isCritical ? '#ef4444' : (edge.style === 'dashed' || edge.animated ? 'var(--text-muted)' : 'var(--text-main)')}
+                        strokeWidth={isCritical ? 3 : 2}
+                        className={clsx(
+                            "pointer-events-none",
+                            edge.animated && "animate-flow",
+                            isSelected && "stroke-orange-500",
+                            dimmedElements.has(edge.id) && "opacity-30"
+                        )}
+
+                        strokeDasharray={edge.style === 'dashed' ? '5,5' : 'none'}
+                        markerEnd={isCritical ? 'url(#arrowhead-critical)' : isSelected ? 'url(#arrowhead-selected)' : 'url(#arrowhead)'}
+                    />
+
+
 
                     {edge.label && (
                         <foreignObject x={midX - 50} y={midY - 45} width={100} height={24} className="overflow-visible pointer-events-none">
+
                             <div className="flex justify-center items-center">
                                 <span className={clsx("text-xs px-2 py-0.5 rounded border shadow-sm whitespace-nowrap", isCritical ? "bg-red-900/80 text-red-200 border-red-700" : "bg-[var(--bg-main)] text-[var(--text-main)] border-[var(--border-color)]")}>{edge.label}</span>
                             </div>
@@ -819,7 +1040,8 @@ const FlowEditorContent = () => {
                     <foreignObject x={midX - 16} y={midY - 16} width={32} height={32} className="overflow-visible pointer-events-none">
                         <div className="flex justify-center items-center h-full pointer-events-auto">
                             <button
-                                className="w-8 h-8 bg-[var(--input-bg)] rounded-full border border-[var(--border-color)] flex items-center justify-center text-[var(--text-main)] hover:border-orange-500 hover:bg-orange-500/20 transition-all opacity-0 group-hover/edge:opacity-100 shadow-lg"
+                                className="w-8 h-8 bg-[var(--input-bg)] rounded-full border border-orange-500/50 flex items-center justify-center text-[var(--text-main)] hover:bg-orange-500/20 transition-all opacity-0 group-hover/edge:opacity-100 shadow-lg"
+
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setNodeMenu({
@@ -828,6 +1050,7 @@ const FlowEditorContent = () => {
                                         y: midY,
                                         edgeId: edge.id
                                     });
+
                                 }}
                             >
                                 <Plus size={18} />
@@ -1297,8 +1520,9 @@ const FlowEditorContent = () => {
 
                                 <svg
                                     ref={svgRef}
-                                    className="w-full h-full cursor-grab active:cursor-grabbing relative"
+                                    className="w-full h-full flow-canvas-container relative"
                                     style={{ backgroundColor: 'transparent' }}
+
 
                                     onClick={() => {
                                         if (nodeMenu.isOpen) {
@@ -1322,9 +1546,14 @@ const FlowEditorContent = () => {
                                         <marker id="arrowhead-critical" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
                                             <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444" />
                                         </marker>
+                                        <marker id="arrowhead-selected" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                            <polygon points="0 0, 10 3.5, 0 7" fill="#f97316" />
+                                        </marker>
+
                                     </defs>
                                     <g ref={gRef}>
                                         {renderedEdges.map((edgeElement: any) => {
+                                            if (!edgeElement) return null;
                                             // Apply dimming to edges
                                             const edgeId = edgeElement.key;
                                             if (dimmedElements.has(edgeId)) {
@@ -1343,13 +1572,20 @@ const FlowEditorContent = () => {
                                         {connectionDrag.active && connectionDrag.startPos && connectionDrag.currentPos && (
                                             <path
                                                 d={`M${connectionDrag.startPos.x},${connectionDrag.startPos.y} L${connectionDrag.currentPos.x},${connectionDrag.currentPos.y}`}
-                                                stroke="#f97316"
+                                                stroke="var(--text-muted)"
                                                 strokeWidth={2}
-                                                strokeDasharray="5,5"
                                                 fill="none"
-                                                className="pointer-events-none stroke-orange-500"
+                                                className="pointer-events-none"
                                             />
                                         )}
+
+
+
+
+
+
+
+
 
                                         {/* Node Type Menu */}
                                         {nodeMenu.isOpen && (

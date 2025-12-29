@@ -1,7 +1,9 @@
 import { memo, useEffect } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { useStore, type Node } from '../../store/store';
+import { NodeHandles } from './NodeHandles';
 import { clsx } from 'clsx';
+
 
 interface FMEANodeProps {
     node: Node;
@@ -131,34 +133,12 @@ export const FMEANode = memo(({ node, selected, onConnectionStart }: FMEANodePro
                 </div>
             </div>
 
-            {/* Left Connection Point (Target) */}
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-gray-500 rounded-full z-20 cursor-crosshair connection-handle hover:bg-orange-500 hover:scale-125 transition-all",
-                    "-left-1.5 top-1/2 -translate-y-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="target"
-                data-handle-id="left"
+            {/* Standard 4-side handles */}
+            <NodeHandles
+                nodeId={node.id}
+                onConnectionStart={onConnectionStart}
             />
 
-            {/* Right Connection Point (Source) */}
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-gray-500 rounded-full z-20 cursor-crosshair connection-handle hover:bg-orange-500 hover:scale-125 transition-all",
-                    "-right-1.5 top-1/2 -translate-y-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="right"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (onConnectionStart) {
-                        onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'right');
-                    }
-                }}
-            />
         </div>
     );
 });

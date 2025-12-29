@@ -24,7 +24,9 @@ export interface Edge {
     markerEnd?: boolean;
     sourceHandle?: string;
     targetHandle?: string;
+    pathPoints?: { x: number; y: number }[]; // Manual waypoints for the path
 }
+
 
 export interface Flow {
     id: string;
@@ -576,25 +578,62 @@ export const useStore = create<FlowState>()(
 
                 exportCurrentFlow: async () => {
                     const { activeFlowId, nodes, edges, flows } = get();
-                    if (!activeFlowId || typeof window.electron?.showSaveDialog !== 'function' || typeof window.electron?.exportFlow !== 'function') {
-                        console.error('Export not available');
-                        return;
-                    }
+                    if (!activeFlowId) return;
 
                     try {
                         const currentFlow = flows.find(f => f.id === activeFlowId);
                         const defaultName = `${currentFlow?.name || 'flow'}.json`;
-
-                        const filePath = await window.electron.showSaveDialog(defaultName);
-                        if (!filePath) return; // User canceled
-
                         const flowData = { nodes, edges };
-                        await window.electron.exportFlow(filePath, flowData);
-                    } catch (error) {
+
+                        // 1. Electron
+                        if (typeof window.electron?.showSaveDialog === 'function' && typeof window.electron?.exportFlow === 'function') {
+                            const filePath = await window.electron.showSaveDialog(defaultName);
+                            if (!filePath) return;
+                            await window.electron.exportFlow(filePath, flowData);
+                            return;
+                        }
+
+                        // 2. Browser File System Access API
+                        if ('showSaveFilePicker' in window) {
+                            try {
+                                const handle = await (window as any).showSaveFilePicker({
+                                    suggestedName: defaultName,
+                                    types: [{
+                                        description: 'JSON Flow File',
+                                        accept: { 'application/json': ['.json'] },
+                                    }],
+                                });
+                                const writable = await handle.createWritable();
+                                await writable.write(JSON.stringify(flowData, null, 2));
+                                await writable.close();
+                                return;
+                            } catch (err: any) {
+                                if (err.name === 'AbortError') {
+                                    throw new Error('cancel');
+                                }
+                                console.error('File Picker Error:', err);
+                                throw err;
+                            }
+                        }
+
+                        // 3. Fallback: Download Link
+                        const blob = new Blob([JSON.stringify(flowData, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = defaultName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+
+                    } catch (error: any) {
+                        if (error.message === 'cancel') throw error;
                         console.error('Failed to export flow:', error);
                         throw error;
                     }
                 },
+
 
                 // Clipboard Actions
                 copyNodes: (ids) => {

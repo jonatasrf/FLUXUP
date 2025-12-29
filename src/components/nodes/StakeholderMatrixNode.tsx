@@ -1,7 +1,9 @@
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { Users, Plus, Trash2 } from 'lucide-react';
 import { useStore, type Node } from '../../store/store';
+import { NodeHandles } from './NodeHandles';
 import { clsx } from 'clsx';
+
 
 interface StakeholderMatrixNodeProps {
     node: Node;
@@ -99,63 +101,82 @@ export const StakeholderMatrixNode = memo(({ node, selected, onConnectionStart }
             <div className="p-4 space-y-6">
                 {/* List View */}
                 {stakeholders.length > 0 ? (
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                        <div className="grid grid-cols-12 gap-2 text-[10px] uppercase text-[var(--text-muted)] font-bold mb-1 px-2">
-                            <div className="col-span-3">Name</div>
-                            <div className="col-span-3">Role</div>
+                    <div className="space-y-0.5 max-h-[300px] overflow-y-auto custom-scrollbar pr-1 border border-[var(--border-color)] rounded bg-[var(--bg-main)]">
+                        {/* Table Header */}
+                        <div className="grid grid-cols-12 gap-2 text-[10px] uppercase text-[var(--text-muted)] font-bold bg-[var(--bg-sidebar)] p-2 sticky top-0 z-10 border-b border-[var(--border-color)] tracking-wider">
+                            <div className="col-span-3">Name / Role</div>
                             <div className="col-span-2 text-center">Power</div>
                             <div className="col-span-2 text-center">Interest</div>
-                            <div className="col-span-2">Strategy</div>
+                            <div className="col-span-4 text-center">Strategy</div>
+                            <div className="col-span-1"></div>
                         </div>
+
+                        {/* Rows */}
                         {stakeholders.map((s) => {
                             const strategy = getStrategy(s.power, s.interest);
                             return (
-                                <div key={s.id} className="grid grid-cols-12 gap-2 items-center bg-[var(--bg-main)] p-2 rounded border border-[var(--border-color)] hover:border-gray-600 transition-colors">
-                                    <div className="col-span-3">
+                                <div key={s.id} className="grid grid-cols-12 gap-2 items-center p-2 hover:bg-[var(--bg-sidebar)] transition-colors border-b border-[var(--border-color)] last:border-0">
+                                    <div className="col-span-3 flex flex-col gap-1">
                                         <input
                                             type="text"
-                                            className="w-full bg-transparent text-[var(--text-main)] text-sm focus:outline-none nodrag"
-                                            placeholder="Name..."
+                                            className="w-full bg-transparent text-[var(--text-main)] text-xs font-medium focus:outline-none nodrag placeholder:text-gray-600"
+                                            placeholder="Name"
                                             value={s.name}
                                             onChange={(e) => handleUpdateStakeholder(s.id, 'name', e.target.value)}
                                         />
-                                    </div>
-                                    <div className="col-span-3">
                                         <input
                                             type="text"
-                                            className="w-full bg-transparent text-[var(--text-muted)] text-xs focus:outline-none nodrag"
-                                            placeholder="Role..."
+                                            className="w-full bg-transparent text-[var(--text-muted)] text-[10px] focus:outline-none nodrag placeholder:text-gray-700"
+                                            placeholder="Role"
                                             value={s.role}
                                             onChange={(e) => handleUpdateStakeholder(s.id, 'role', e.target.value)}
                                         />
                                     </div>
+
                                     <div className="col-span-2 flex justify-center">
                                         <select
-                                            className="bg-[var(--input-bg)] text-xs text-gray-300 border border-[var(--border-color)] rounded px-1 py-0.5 focus:outline-none nodrag cursor-pointer"
+                                            className={clsx(
+                                                "text-[10px] uppercase font-bold rounded px-1.5 py-0.5 focus:outline-none nodrag cursor-pointer appearance-none text-center min-w-[50px]",
+                                                s.power === 'high' ? "bg-red-500/20 text-red-300 border border-red-500/30" : "bg-green-500/20 text-green-300 border border-green-500/30"
+                                            )}
                                             value={s.power}
                                             onChange={(e) => handleUpdateStakeholder(s.id, 'power', e.target.value)}
                                         >
-                                            <option value="low">Low</option>
-                                            <option value="high">High</option>
+                                            <option value="low" className="bg-[#1e1e1e]">Low</option>
+                                            <option value="high" className="bg-[#1e1e1e]">High</option>
                                         </select>
                                     </div>
+
                                     <div className="col-span-2 flex justify-center">
                                         <select
-                                            className="bg-[var(--input-bg)] text-xs text-gray-300 border border-[var(--border-color)] rounded px-1 py-0.5 focus:outline-none nodrag cursor-pointer"
+                                            className={clsx(
+                                                "text-[10px] uppercase font-bold rounded px-1.5 py-0.5 focus:outline-none nodrag cursor-pointer appearance-none text-center min-w-[50px]",
+                                                s.interest === 'high' ? "bg-orange-500/20 text-orange-300 border border-orange-500/30" : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                                            )}
                                             value={s.interest}
                                             onChange={(e) => handleUpdateStakeholder(s.id, 'interest', e.target.value)}
                                         >
-                                            <option value="low">Low</option>
-                                            <option value="high">High</option>
+                                            <option value="low" className="bg-[#1e1e1e]">Low</option>
+                                            <option value="high" className="bg-[#1e1e1e]">High</option>
                                         </select>
                                     </div>
-                                    <div className="col-span-2 flex items-center justify-between">
-                                        <span className={clsx("text-[10px] font-bold uppercase truncate", strategy.color)}>
+
+                                    <div className="col-span-4 flex justify-center">
+                                        <span className={clsx(
+                                            "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border border-dashed",
+                                            s.power === 'high' && s.interest === 'high' ? "bg-red-500/10 text-red-400 border-red-500/50" :
+                                                s.power === 'high' && s.interest === 'low' ? "bg-orange-500/10 text-orange-400 border-orange-500/50" :
+                                                    s.power === 'low' && s.interest === 'high' ? "bg-blue-500/10 text-blue-400 border-blue-500/50" :
+                                                        "bg-gray-500/10 text-gray-400 border-gray-500/50"
+                                        )}>
                                             {strategy.text}
                                         </span>
+                                    </div>
+
+                                    <div className="col-span-1 flex justify-end">
                                         <button
                                             onClick={() => handleRemoveStakeholder(s.id)}
-                                            className="text-gray-600 hover:text-red-400 transition-colors ml-1"
+                                            className="text-gray-600 hover:text-red-400 transition-colors p-1 rounded hover:bg-white/5"
                                         >
                                             <Trash2 size={12} />
                                         </button>
@@ -224,32 +245,12 @@ export const StakeholderMatrixNode = memo(({ node, selected, onConnectionStart }
                 )}
             </div>
 
-            {/* Connection Points */}
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-[var(--bg-main)] border-2 border-[var(--border-color)] rounded-full z-20 cursor-crosshair connection-handle hover:bg-orange-500 hover:scale-125 transition-all",
-                    "-left-1.5 top-1/2 -translate-y-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="target"
-                data-handle-id="left"
+            {/* Standard 4-side handles */}
+            <NodeHandles
+                nodeId={node.id}
+                onConnectionStart={onConnectionStart}
             />
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-gray-500 rounded-full z-20 cursor-crosshair connection-handle hover:bg-orange-500 hover:scale-125 transition-all",
-                    "-right-1.5 top-1/2 -translate-y-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="right"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (onConnectionStart) {
-                        onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'right');
-                    }
-                }}
-            />
+
 
 
         </div>

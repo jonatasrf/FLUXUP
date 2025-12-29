@@ -1,7 +1,9 @@
 import { clsx } from 'clsx';
 import { Clock, AlertCircle, CheckCircle2, Circle, CheckSquare, Flame, ArrowUp, ArrowDown, Minus, AlertTriangle, Paperclip } from 'lucide-react';
 import { useStore, type Node } from '../../store/store';
+import { NodeHandles } from './NodeHandles';
 import { useState, useEffect, useRef, useLayoutEffect, memo } from 'react';
+
 
 const statusColors: Record<string, string> = {
     'pending': 'bg-gray-500',
@@ -179,7 +181,7 @@ export const TaskNode = memo(function TaskNode({ node, selected, onConnectionSta
                                             const formatDate = (dateStr: string) => {
                                                 // Append T12:00:00 to avoid timezone shifts when parsing YYYY-MM-DD
                                                 const date = new Date(`${dateStr}T12:00:00`);
-                                                return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                                                return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
                                             };
 
                                             if (taskData.startDate && taskData.dueDate) {
@@ -349,70 +351,12 @@ export const TaskNode = memo(function TaskNode({ node, selected, onConnectionSta
                 )
             }
 
-            {/* Left Connection Point (Target) */}
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-gray-500 rounded-full z-20 cursor-crosshair connection-handle hover:bg-orange-500 hover:scale-125 transition-all",
-                    "-left-1.5 top-1/2 -translate-y-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="target"
-                data-handle-id="left"
+            {/* Reusable Connection Handles (Standard 4-sides) */}
+            <NodeHandles
+                nodeId={node.id}
+                onConnectionStart={onConnectionStart}
             />
 
-            {/* Right Connection Point (Source) */}
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-gray-500 rounded-full z-20 cursor-crosshair connection-handle hover:bg-orange-500 hover:scale-125 transition-all",
-                    "-right-1.5 top-1/2 -translate-y-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="right"
-                onMouseDown={(e) => {
-                    e.stopPropagation(); // Stop D3 drag
-                    e.preventDefault(); // Prevent text selection etc
-                    if (onConnectionStart) {
-                        onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'right');
-                    }
-                }}
-            />
-
-            {/* Top Connection Point */}
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-gray-500 rounded-full z-20 cursor-crosshair connection-handle hover:bg-orange-500 hover:scale-125 transition-all",
-                    "-top-1.5 left-1/2 -translate-x-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="top"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (onConnectionStart) {
-                        onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'top');
-                    }
-                }}
-            />
-
-            {/* Bottom Connection Point */}
-            <div
-                className={clsx(
-                    "absolute w-3 h-3 bg-gray-500 rounded-full z-20 cursor-crosshair connection-handle hover:bg-orange-500 hover:scale-125 transition-all",
-                    "-bottom-1.5 left-1/2 -translate-x-1/2"
-                )}
-                data-node-id={node.id}
-                data-handle-type="source"
-                data-handle-id="bottom"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (onConnectionStart) {
-                        onConnectionStart(node.id, 'source', e.clientX, e.clientY, 'bottom');
-                    }
-                }}
-            />
 
             {/* Resize Handle (Bottom Right) */}
             <div
