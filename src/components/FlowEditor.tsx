@@ -318,6 +318,23 @@ const FlowEditorContent = () => {
                         const sourceNode = nodes.find(n => n.id === connectionDrag.sourceId);
                         const isNote = sourceNode?.type === 'note';
 
+                        const isDecisionYes = connectionDrag.sourceHandleId === 'yes';
+                        const isDecisionNo = connectionDrag.sourceHandleId === 'no';
+
+                        // Determine Edge Properties
+                        let edgeColor = undefined;
+                        let edgeLabel = undefined;
+
+                        if (isNote) {
+                            edgeColor = '#facc15';
+                        } else if (isDecisionYes) {
+                            edgeColor = '#22c55e'; // Green
+                            edgeLabel = 'Yes';
+                        } else if (isDecisionNo) {
+                            edgeColor = '#ef4444'; // Red
+                            edgeLabel = 'No';
+                        }
+
                         const newEdge = {
                             id: `e${connectionDrag.sourceId}-${targetId}-${Date.now()}`,
                             source: connectionDrag.sourceId!,
@@ -327,7 +344,8 @@ const FlowEditorContent = () => {
                             animated: !isNote,
                             style: isNote ? 'dashed' as const : 'solid' as const,
                             markerEnd: !isNote,
-                            color: isNote ? '#facc15' : undefined
+                            color: edgeColor,
+                            label: edgeLabel
                         };
                         addEdge(newEdge);
                         toast.success("Connected!");
@@ -929,14 +947,22 @@ const FlowEditorContent = () => {
             const isPastFlow = isSourceCompleted && isTargetCompleted;
             const shouldAnimate = isPastFlow || (isSourceCompleted && isTargetActive) || edge.animated;
 
-            let strokeColor = edge.color || "#555";
-            let shadowClass = "";
-            if (isCritical) { strokeColor = "#ef4444"; shadowClass = "drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"; }
-            else if (isTargetOverdue) { strokeColor = "#ff0000"; shadowClass = "drop-shadow-[0_0_8px_rgba(255,0,0,0.8)]"; }
-            else if (isTargetInferredOverdue) { strokeColor = "#eab308"; shadowClass = "drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]"; }
-            else if (isPastFlow) { strokeColor = "#00ff00"; shadowClass = "drop-shadow-[0_0_8px_rgba(0,255,0,0.6)]"; }
+            // Determine Styling
+            const isBackward = finalTargetX < finalSourceX - 50;
+            const isReturnLoop = isBackward && !edge.label;
 
-            if (isSelected) strokeColor = "#f97316";
+            let visibleStrokeColor = edge.color || ((isBackward) ? '#94a3b8' : 'var(--text-main)'); // Gray for loops
+            let shadowClass = "";
+
+            if (isCritical) { visibleStrokeColor = '#ef4444'; shadowClass = "drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"; }
+            else if (isTargetOverdue) { visibleStrokeColor = "red"; shadowClass = "drop-shadow-[0_0_8px_rgba(255,0,0,0.8)]"; }
+            else if (isTargetInferredOverdue) { visibleStrokeColor = "#eab308"; shadowClass = "drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]"; }
+            else if (isPastFlow) { visibleStrokeColor = "#00ff00"; shadowClass = "drop-shadow-[0_0_8px_rgba(0,255,0,0.6)]"; }
+
+            if (isSelected) visibleStrokeColor = '#f97316';
+            if (edge.animated) visibleStrokeColor = '#22c55e';
+
+            const visibleStrokeDasharray = (edge.style === 'dashed' || (isBackward && !isCritical)) ? "5,5" : edge.style === 'dotted' ? "2,2" : "0";
 
             return (
                 <g key={edge.id || `edge-${idx}`} className="group/edge">
@@ -948,9 +974,9 @@ const FlowEditorContent = () => {
                     <path
                         d={pathData}
                         fill="none"
-                        stroke={strokeColor}
+                        stroke={visibleStrokeColor}
                         strokeWidth={isSelected ? 3 : (isCritical ? 3 : 2)}
-                        strokeDasharray={edge.style === 'dashed' ? "5,5" : edge.style === 'dotted' ? "2,2" : "0"}
+                        strokeDasharray={visibleStrokeDasharray}
                         markerEnd={edge.markerEnd !== false ? (isCritical ? "url(#arrowhead-critical)" : (isSelected ? "url(#arrowhead-selected)" : "url(#arrowhead)")) : undefined}
                         onClick={(e) => { e.stopPropagation(); setSelectedEdge(edge.id); }}
                         className={clsx("cursor-pointer transition-colors", shadowClass, shouldAnimate && "animate-flow")}

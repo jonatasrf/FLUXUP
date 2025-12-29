@@ -181,8 +181,6 @@ export function getOrthogonalPath(
     if (floorY !== undefined) {
         if (isBottomExit) {
             // For bottom exit, go straight to floor if needed
-            // But if we just go 'margin', we might not be at floor.
-            // If we want to guarantee "under" routing:
             p1y = Math.max(p1y, floorY);
         }
     }
@@ -218,8 +216,6 @@ export function getOrthogonalPath(
 
         if (tDir.dy === 0) {
             // Horizontal Entry (Left/Right)
-            // Go vertical to Target Y? No, Target Y is Fixed.
-            // Be careful of overlapping node body.
 
             // If Bottom Exit, go to Floor?
             if (isBottomExit && floorY !== undefined) {
@@ -235,7 +231,6 @@ export function getOrthogonalPath(
                 // p1 is (sX, p1y).
                 points.push([sX, midY]);
                 points.push([tApproachX, midY]);
-                // points.push([tApproachX, tApproachY]); // Implicit next
             }
         } else {
             // Vertical Entry (Top/Bottom) -> U-shape or Z-shape
@@ -246,23 +241,28 @@ export function getOrthogonalPath(
                 const floorLevel = Math.max(p1y, tApproachY, floorY);
                 points.push([sX, floorLevel]); // Ensure we hit floor
                 points.push([tApproachX, floorLevel]); // Across
-                points.push([tApproachX, tApproachY]); // Up to approach
-            }
-            // If Top -> Top (Over)
-            else if (sourceHandle.includes('top') && targetHandle.includes('top')) {
-                // Route via Ceiling (min Y)
-                const ceiling = Math.min(p1y, tApproachY) - 50;
-                points.push([sX, ceiling]);
-                points.push([tApproachX, ceiling]);
-                points.push([tApproachX, tApproachY]);
-            }
-            else {
-                // Top -> Bottom or Bottom -> Top
-                const midY = (p1y + tApproachY) / 2;
-                points.push([sX, midY]);
-                points.push([tApproachX, midY]);
             }
         }
+    }
+
+    // SPECIAL BACKWARD ROUTING (Right -> Left but Target is behind Source)
+    // If tApproachX < p1x (Backward) AND we are currently doing standard mid-routing, it might cut through nodes.
+    // Let's enforce "Floor" routing if it's a significant backward jump and we have a floorY.
+    const isBackward = tApproachX < p1x - 50;
+
+    // Check if we haven't already done floor routing
+    const manualFloorRouting = (isBottomExit && isBottomEntry);
+
+    if (isBackward && floorY !== undefined && sDir.dx > 0 && tDir.dx < 0 && !manualFloorRouting) {
+        // Clear previous generic points 
+        // We want: Source -> Right -> Down to Floor -> Left -> Up to Target -> Target
+        // We keep the first 2 points: Source, p1 (Right Margin)
+        while (points.length > 2) points.pop();
+
+        const floorLevel = floorY;
+        points.push([p1x, floorLevel]); // Down to floor
+        points.push([tApproachX, floorLevel]); // Across to target X
+        points.push([tApproachX, tApproachY]); // Up to target Y
     }
 
     // Final segment to Target
@@ -294,4 +294,5 @@ export function getOrthogonalPath(
         points: cleanPoints
     };
 
+}
 }

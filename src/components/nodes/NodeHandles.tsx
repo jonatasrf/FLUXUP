@@ -48,17 +48,20 @@ export const NodeHandles = memo(function NodeHandles({
             {/* Left - Arrival (Target) */}
             {!hideLeft && (
                 <div
-                    className={clsx(
-                        "absolute w-3 h-3 rounded-full z-20 cursor-crosshair connection-handle transition-all border-2 border-[var(--bg-main)] shadow-sm opacity-0 group-hover:opacity-100",
-                        leftHandleType === 'target' ? "bg-cyan-500 hover:bg-cyan-400" : "bg-orange-500 hover:bg-orange-400",
-                        "-left-1.5 top-1/2 -translate-y-1/2 hover:scale-125"
-                    )}
+                    className="absolute w-8 h-8 -left-4 top-1/2 -translate-y-1/2 z-30 flex items-center justify-center cursor-crosshair group/handle"
+                    onMouseDown={(e) => handleMouseDown(e, leftHandleType, leftHandleId)}
+                    title="Arrival (Forward)"
                     data-node-id={nodeId}
                     data-handle-type={leftHandleType}
                     data-handle-id={leftHandleId}
-                    onMouseDown={(e) => handleMouseDown(e, leftHandleType, leftHandleId)}
-                    title="Arrival (Forward)"
-                />
+                >
+                    <div
+                        className={clsx(
+                            "w-3 h-3 rounded-full transition-all border-2 border-[var(--bg-main)] shadow-sm opacity-0 group-hover:opacity-100 group-hover/handle:opacity-100 group-hover/handle:scale-125",
+                            leftHandleType === 'target' ? "bg-cyan-500 hover:bg-cyan-400" : "bg-orange-500 hover:bg-orange-400"
+                        )}
+                    />
+                </div>
             )}
 
             {/* Right - Departure (Source - Stacked Support) */}
@@ -69,49 +72,58 @@ export const NodeHandles = memo(function NodeHandles({
                 return (
                     <div
                         key={id}
-                        className={clsx(
-                            "absolute w-3 h-3 rounded-full z-20 cursor-crosshair connection-handle transition-all border-2 border-[var(--bg-main)] shadow-sm opacity-0 group-hover:opacity-100",
-                            rightHandleType === 'source' ? "bg-orange-500 hover:bg-orange-400" : "bg-cyan-500 hover:bg-cyan-400",
-                            "-right-1.5 -translate-y-1/2 hover:scale-125"
-                        )}
+                        className="absolute w-8 h-8 -right-4 -translate-y-1/2 z-30 flex items-center justify-center cursor-crosshair group/handle"
                         style={{ top: `${topPercent}%` }}
+                        onMouseDown={(e) => handleMouseDown(e, rightHandleType, id)}
+                        title="Departure (Forward)"
                         data-node-id={nodeId}
                         data-handle-type={rightHandleType}
                         data-handle-id={id}
-                        onMouseDown={(e) => handleMouseDown(e, rightHandleType, id)}
-                        title="Departure (Forward)"
-                    />
+                    >
+                        <div
+                            className={clsx(
+                                "w-3 h-3 rounded-full transition-all border-2 border-[var(--bg-main)] shadow-sm opacity-0 group-hover:opacity-100 group-hover/handle:opacity-100 group-hover/handle:scale-125",
+                                rightHandleType === 'source' ? "bg-orange-500 hover:bg-orange-400" : "bg-cyan-500 hover:bg-cyan-400"
+                            )}
+                        />
+                    </div>
                 );
             })}
 
             {/* Top - Return (Source/Target) */}
             {!hideTop && (
                 <div
-                    className={clsx(
-                        "absolute w-3 h-3 bg-purple-500 rounded-full z-20 cursor-crosshair connection-handle transition-all border-2 border-[var(--bg-main)] shadow-sm opacity-0 group-hover:opacity-100 hover:bg-purple-400",
-                        "-top-1.5 left-1/2 -translate-x-1/2 hover:scale-125"
-                    )}
+                    className="absolute w-8 h-8 -top-4 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center cursor-crosshair group/handle"
+                    onMouseDown={(e) => handleMouseDown(e, topHandleType, topHandleId)}
+                    title="Return / Loop"
                     data-node-id={nodeId}
                     data-handle-type={topHandleType}
                     data-handle-id={topHandleId}
-                    onMouseDown={(e) => handleMouseDown(e, topHandleType, topHandleId)}
-                    title="Return / Loop"
-                />
+                >
+                    <div
+                        className={clsx(
+                            "w-3 h-3 bg-purple-500 rounded-full transition-all border-2 border-[var(--bg-main)] shadow-sm opacity-0 group-hover:opacity-100 group-hover/handle:opacity-100 hover:bg-purple-400 group-hover/handle:scale-125"
+                        )}
+                    />
+                </div>
             )}
 
             {/* Bottom - Return (Source/Target) */}
             {!hideBottom && (
                 <div
-                    className={clsx(
-                        "absolute w-3 h-3 bg-purple-500 rounded-full z-20 cursor-crosshair connection-handle transition-all border-2 border-[var(--bg-main)] shadow-sm opacity-0 group-hover:opacity-100 hover:bg-purple-400",
-                        "-bottom-1.5 left-1/2 -translate-x-1/2 hover:scale-125"
-                    )}
+                    className="absolute w-8 h-8 -bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center cursor-crosshair group/handle"
+                    onMouseDown={(e) => handleMouseDown(e, bottomHandleType, bottomHandleId)}
+                    title="Return / Loop"
                     data-node-id={nodeId}
                     data-handle-type={bottomHandleType}
                     data-handle-id={bottomHandleId}
-                    onMouseDown={(e) => handleMouseDown(e, bottomHandleType, bottomHandleId)}
-                    title="Return / Loop"
-                />
+                >
+                    <div
+                        className={clsx(
+                            "w-3 h-3 bg-purple-500 rounded-full transition-all border-2 border-[var(--bg-main)] shadow-sm opacity-0 group-hover:opacity-100 group-hover/handle:opacity-100 hover:bg-purple-400 group-hover/handle:scale-125"
+                        )}
+                    />
+                </div>
             )}
 
         </>

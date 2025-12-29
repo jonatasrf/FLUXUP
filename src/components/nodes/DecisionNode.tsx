@@ -1,9 +1,7 @@
 
 import { memo, useRef, useLayoutEffect } from 'react';
 import { useStore, type Node } from '../../store/store';
-import { NodeHandles } from './NodeHandles';
 import { clsx } from 'clsx';
-
 import { ArrowUpDown } from 'lucide-react';
 
 interface DecisionNodeProps {
@@ -50,20 +48,50 @@ export const DecisionNode = memo(({ node, selected, onConnectionStart }: Decisio
         }
     }, [data.question, node.height, node.width, node.id]);
 
+    const handleMouseDown = (e: React.MouseEvent, type: 'source' | 'target', id: string) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onConnectionStart?.(node.id, type, e.clientX, e.clientY, id);
+    };
+
     return (
         <div className={clsx(
             "relative w-full h-full bg-[var(--bg-sidebar)] rounded-lg border-2 shadow-lg transition-all duration-200 flex flex-col group min-w-[220px]",
             selected ? "border-orange-500 shadow-orange-500/20" : "border-[var(--border-color)] hover:border-gray-600"
         )}>
-            {/* Specialized handles for Decision: Standard Arrival (Left), Outputs (Right), Loops (Top/Bottom) */}
-            <NodeHandles
-                nodeId={node.id}
-                onConnectionStart={onConnectionStart}
-                rightHandleIds={data.decisionSwapped ? ['no', 'yes'] : ['yes', 'no']}
-                topHandleType="target"
-                bottomHandleType="target"
+            {/* Top Handle - Input/Loop Return */}
+            <div
+                className="absolute w-4 h-4 rounded-full bg-blue-500 border-2 border-white/50 -top-2 hover:w-5 hover:h-5 transition-all shadow-[0_0_10px_rgba(59,130,246,0.6)] cursor-crosshair z-20 left-1/2 -translate-x-1/2"
+                onMouseDown={(e) => handleMouseDown(e, 'target', 'top')}
+                title="Input"
             />
 
+            {/* Bottom Handle - NO Output (Red) */}
+            <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-20">
+                <span className="text-[10px] font-bold text-red-500 bg-[var(--bg-main)] px-1 rounded shadow-sm border border-red-500/30 mb-0.5">NO</span>
+            </div>
+            <div
+                className="absolute w-4 h-4 rounded-full bg-red-500 border-2 border-white/50 -bottom-2 transition-all shadow-[0_0_10px_rgba(239,68,68,0.6)] hover:scale-125 cursor-crosshair z-20 left-1/2 -translate-x-1/2"
+                onMouseDown={(e) => handleMouseDown(e, 'source', 'no')}
+                title="NO Output"
+            />
+
+            {/* Right Handle - YES Output (Green) */}
+            <div className="absolute -right-3 top-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none z-20">
+                <span className="text-[10px] font-bold text-green-500 bg-[var(--bg-main)] px-1 rounded shadow-sm border border-green-500/30 mr-1">YES</span>
+            </div>
+            <div
+                className="absolute w-4 h-4 rounded-full bg-green-500 border-2 border-white/50 -right-2 transition-all shadow-[0_0_10px_rgba(34,197,94,0.6)] hover:scale-125 cursor-crosshair z-20 top-1/2 -translate-y-1/2"
+                onMouseDown={(e) => handleMouseDown(e, 'source', 'yes')}
+                title="YES Output"
+            />
+
+            {/* Left Handle - Secondary Input */}
+            <div
+                className="absolute w-3 h-3 rounded-full bg-blue-400 border-2 border-white/50 -left-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-crosshair z-20 top-1/2 -translate-y-1/2"
+                onMouseDown={(e) => handleMouseDown(e, 'target', 'left')}
+                title="Secondary Input"
+            />
 
 
             <div className="p-3 flex-1 flex flex-col items-center justify-center min-h-[60px]">
@@ -129,24 +157,6 @@ export const DecisionNode = memo(({ node, selected, onConnectionStart }: Decisio
                         <ArrowUpDown size={12} />
                     </button>
                 </div>
-            </div>
-
-            {/* Repositioned Yes/No Labels next to stacked handles on the right */}
-            <div className="absolute -right-8 top-[33.33%] -translate-y-1/2 pointer-events-none">
-                <span className={clsx(
-                    "text-[10px] font-bold transition-colors whitespace-nowrap",
-                    ((!data.decisionSwapped && data.decision === 'yes') || (data.decisionSwapped && data.decision === 'no'))
-                        ? (data.decisionSwapped ? "text-red-500" : "text-green-500")
-                        : "text-gray-600"
-                )}>{data.decisionSwapped ? 'NO' : 'YES'}</span>
-            </div>
-            <div className="absolute -right-8 top-[66.66%] -translate-y-1/2 pointer-events-none">
-                <span className={clsx(
-                    "text-[10px] font-bold transition-colors whitespace-nowrap",
-                    ((!data.decisionSwapped && data.decision === 'no') || (data.decisionSwapped && data.decision === 'yes'))
-                        ? (data.decisionSwapped ? "text-green-500" : "text-red-500")
-                        : "text-gray-600"
-                )}>{data.decisionSwapped ? 'YES' : 'NO'}</span>
             </div>
 
         </div>
